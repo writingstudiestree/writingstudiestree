@@ -1,0 +1,42 @@
+
+
+#block-writing_tree-writing_tree_link_to_tree{
+	position:absolute;
+	top:75px;
+	float:right;
+	margin-left:400px;
+ 	height:100px;
+	width:175px;
+
+		
+	
+}
+
+.linkImage{
+	
+	display:block;
+	width:100px;
+	height:100px;	
+	background:url(link.png) no-repeat;
+	
+}
+
+.linkText{
+	position:absolute;
+	right:0px;
+	text-transform:capitalize;
+	text-align:center;
+	top:35px;
+	width:100px;
+ 	
+}
+
+.field-type-text-with-summary{
+	padding-top:35px;
+
+	
+	
+}
+
+
+

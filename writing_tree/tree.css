@@ -1,0 +1,146 @@
+ 
+
+/*hide the things we don't want 
+#sidebar-left, .colright, #breadcrumb{
+	
+	display:none;
+	
+}
+
+
+body.two-sidebars .outer{
+	margin-left:0px !important;
+	margin-right:0px !important;
+	
+	
+}
+
+*/
+
+
+/* The main display holder on the content/person page */
+
+
+
+
+.embedTreeHolder{
+	position:absolute;
+	
+	
+	height:400px;
+	width:700px;
+	margin-left:470px;
+	top:100px;
+	
+	background-color:whitesmoke;
+	overflow:hidden;
+	
+  border: 1px solid #e3e3e3;
+  -webkit-border-radius: 4px;
+     -moz-border-radius: 4px;
+          border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);	
+	
+}
+
+#modalTreeHolder{
+	overflow:hidden;
+	
+	
+}
+
+
+
+
+#zoomCanvas{
+  cursor:hand;
+  cursor:grab;
+  cursor:-moz-grab;
+}
+.grabbing {
+ cursor:grabbing !important;
+ cursor:-moz-grabbing !important;
+}
+
+.chartZoomOut:hover, .chartZoomIn:hover{
+	background-color:#9CF;
+	
+}
+
+.chartZoomOut, .chartZoomIn{
+	
+	cursor:pointer;	
+	top:20px;
+	width:15px;
+	height:15px;
+	background-color:#E9E9E9;
+	font-size:16px;
+	font-weight:bold;	
+	position:absolute;
+	padding: 5px 0px 5px 5px;
+	}
+
+.chartZoomIn{
+	right:22px;
+	-webkit-border-radius: 4px 0px 0px 4px;
+    border-radius: 4px 0px 0px 4px;
+-webkit-box-shadow:  -1px 1px 1px 1px rgba(0, 0, 0, .3);
+	box-shadow:  -1px 1px 1px 1px rgba(0, 0, 0, .3);	
+}
+
+.chartZoomOut{
+	right:2px;
+	top:20px;
+	-webkit-border-radius: 0px 4px 4px 0px;
+    border-radius: 0px 4px 4px 0px;
+-webkit-box-shadow:  1px 1px 1px 1px rgba(0, 0, 0, .3);
+        
+        box-shadow:  1px 1px 1px 1px rgba(0, 0, 0, .3);	
+}
+
+
+/* SVG rules */
+
+.d3ToolTip{
+	position: absolute;
+	z-index: 90000;
+	visibility: hidden;
+	background-color:#fff;
+	min-height:30px;
+	min-width:75px;
+	padding:10px;
+	border-radius:5px;
+	border:solid 1px #333;
+}
+
+
+#chart{
+	font-family:Helvetica, Arial, sans-serif;
+	position:relative;
+	webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;	
+}
+
+.childNode{
+	cursor:pointer;
+}
+
+.link {
+  fill: none; 
+  stroke-width: 3px;
+}
+
+
+.hoverLink{
+	stroke-width: 9px;
+	fill: none;
+	stroke: #F00;
+	opacity:0; 
+}
+
