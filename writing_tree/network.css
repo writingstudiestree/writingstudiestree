@@ -1,0 +1,265 @@
+ 
+
+/*hide the things we don't want */
+#sidebar-left, .colright, #breadcrumb{
+	
+	display:none;
+	
+}
+
+
+
+
+body.two-sidebars .outer{
+	margin-left:0px !important;
+	margin-right:0px !important;
+	
+}
+
+.outer{
+	margin-right: 0px !important;
+	
+	
+}
+
+
+.nodeList{
+	background-color:#FFF;
+	margin:2px;
+	padding:2px;
+	overflow-y: scroll;
+	
+	
+}
+
+.nodeListSearch{
+	width:98%;
+	font-size:14px;
+	position:static;
+}
+
+#networkControls{
+	position:absolute;
+	top:0px;
+	left:0px;
+	width:60px;
+	opacity:0.85;
+	background-color:#333;
+	overflow:hidden;
+	
+	
+	
+}
+.networkControlsChildHolder{
+	display:none;
+}
+
+#networkControls img{
+	height:40px;
+	width:auto;
+	padding:10px;
+
+
+}
+ 
+#zoomCanvas{
+  cursor:hand;
+  cursor:grab;
+  cursor:-moz-grab;
+}
+#chart{
+	font-family:Helvetica, Arial, sans-serif;
+	border:1px solid #CCC;
+	position:relative;	
+	webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;		
+}
+
+
+#loadingInfo{
+	position:absolute;
+
+	margin-top:300px;
+	margin-left: 450px;
+	width:200px;
+	height:150px;
+	border:soild 1px #333;
+	text-align:center;
+ 	background-color:#fff;
+	opacity:0.8;
+    -moz-border-radius:5px;-ie-border-radius:5px;-webkit-border-radius:5px;-o-border-radius:5px;border-radius:5px;
+		
+}
+
+
+#filterLabel{
+	color:#000;
+	position:absolute;
+	top:10px;
+	left:18px;
+	font-size:11px;
+	
+}
+
+/*scroll widget styles */
+
+
+#zoomWidget{
+	position:absolute;
+	height:145px;
+	width:16px;
+	right:10px;
+	top:125px;
+	visibility:visible;
+	
+}
+
+.zoomWidgetEndcaps{
+	width:16px;
+	height:16px;
+    -moz-border-radius:2px;-ie-border-radius:2px;-webkit-border-radius:2px;-o-border-radius:2px;border-radius:2px;
+	box-shadow:1px 0 3px #979797;
+	position:absolute; 
+	cursor: pointer;
+	background:#fff;
+	color: #979797;
+	z-index:1100;
+	border:1px solid #999;	
+	right:-2px;	
+	
+}
+.zoomWidgetEndcaps div{
+	position:absolute;
+	font-size:22px;
+	left:1px;
+	top:-4px;
+	pointer-events: none;
+	text-shadow: 0 1px 0 rgba(151, 151, 151, 0.5);
+	
+}
+
+#woomWidgetZoomOut div{
+	font-size:28px;
+	left:3px;
+	top:-10px;	
+	
+}
+
+.zoomWidgetRail{
+	width:2px;
+	left:6px;
+	background-color:#fff;
+	border:1px solid #999;
+    -moz-border-radius:2px;-ie-border-radius:2px;-webkit-border-radius:2px;-o-border-radius:2px;border-radius:2px;
+	box-shadow:1px 0 3px #979797;
+	cursor:pointer;
+	position:absolute;
+	height:100%;
+	z-index:1;
+}
+
+.dragdealer {
+	position: relative;
+	height: 30px;
+ 
+}
+.dragdealer .handle {
+	position: absolute;
+	cursor: pointer;
+	width: 16px;
+	height: 8px;
+	background: #fff;
+	color: #979797;
+	border:1px solid #979797;
+    -moz-border-radius:2px;-ie-border-radius:2px;-webkit-border-radius:2px;-o-border-radius:2px;border-radius:2px;
+	box-shadow:1px 0 3px #979797;
+	text-shadow: 0 1px 0 rgba(151, 151, 151, 0.5);
+	text-align: center;	
+	z-index:1000;
+	line-height: 34px;
+}
+.handle div{
+	position:absolute;
+	font-size:28px;
+	left:3px;
+	top:-15px;
+	
+}
+ 
+.dragdealer .disabled {
+	background: #898989;
+}
+
+
+.grabbing {
+ cursor:grabbing !important;
+ cursor:-moz-grabbing !important;
+}
+
+
+
+.d3ToolTip{
+	position: absolute;
+	z-index: 90000;
+	visibility: hidden;
+	background-color:#333;
+	color:#fff;
+	opacity:0.75;
+	min-height:30px;
+	min-width:75px;
+	padding:20px;
+	border-radius:5px;
+	border:solid 1px #333;
+}
+
+
+
+#legend{
+	position:absolute;
+	top:0px;
+	right:0px;
+	border-left:solid 1px #CCC;
+	border-bottom:solid 1px #CCC;
+	padding:10px;
+	background-color:#fff;
+	height:20px;
+	overflow:hidden;
+	
+	
+	
+}
+#legendBody{
+	display:none;
+	
+}
+#legendLabel{
+	font-size:16px;
+	cursor:pointer;
+	
+}
+
+.legendColor{
+	display:inline-block;
+	height:5px;
+	width:20px;
+	margin-right:3px;
+	
+}
+
+::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 11px;
+    height: 11px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    border: 2px solid white; /* should match background, can't be transparent */
+    background-color: rgba(0, 0, 0, .5);
+}
+
+ 

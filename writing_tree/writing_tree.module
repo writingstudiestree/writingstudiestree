@@ -1,0 +1,703 @@
+<?php
+
+
+define("WRITINGTREE_TREE_MODE",     "modal");	//open the tree visualization in a modal window
+//define("WRITINGTREE_TREE_MODE",     "embed");	    //Embed the tree in the HTML, there must be 
+//define("WRITINGTREE_TREE_MODE_EMBED_ID",     "main-container");	//the id of the div to embed the tree vis in
+
+
+//$WRITINGTREE_USE_VIDS =  array(1,3);	//which vocab ids to include, defined below in writing_tree_network_json()
+
+
+
+
+
+function writing_tree_help($path, $arg) {
+ 
+  switch ($path) {
+    case "admin/help#writing_tree":
+      return '<p>'.  t("Here is where the help desription goes for the writing_tree module.") .'</p>';
+      break;
+  }
+
+}
+
+
+
+
+/**
+ * Implements hook_block_info().
+ */
+function writing_tree_block_info() {
+  $blocks['writing_tree_link_to_tree'] = array(
+    'info' => t("Add a link to this person's visual tree"), //The name that will appear in the block list.
+    'cache' => DRUPAL_CACHE_PER_ROLE, //Default
+  );
+  return $blocks;
+}
+
+
+
+/**
+ * Implements hook_block_view().
+ */
+function writing_tree_block_view($delta = '') {
+  switch($delta){
+    case 'writing_tree_link_to_tree':
+
+
+	
+		if(user_access('access content')){
+ 			
+	 		$path = current_path();
+			$path = explode("/",$path);
+			$path = @$path[1];
+			
+			//we only want nodes
+			if (!is_numeric($path)){return;}
+			
+			//now we have their node id, look up their name so we can make a human readable URL
+			$person=node_load($path);
+			
+			$name = $person->title;
+			$path = strtolower($name);
+			$path = str_replace(".",'-',$path);
+			$path = str_replace(" ",'-',$path);		
+			
+			
+			//again, if not limited by content type we only want to show it if it is a person
+			if ($person->type != 'person'){return;}
+			
+				 
+		   
+		   //return the block, styled in writing_tree.css
+		   /*
+		   $block['content'] = "
+		   
+		   	
+				<a href=\"/tree/$path\">	
+					<div class=\"linkImage\"></div>
+					<div class=\"linkText\"> Visualize<br>$name</div>
+				</a>
+		   
+		   ";
+		   */
+		   
+		   //load as a modal window in the person node view
+		    if (WRITINGTREE_TREE_MODE == "embed"){
+				drupal_add_css(drupal_get_path("module", "writing_tree")."/tree.css");
+		   		drupal_add_js(drupal_get_path('module', "writing_tree")."/d3.min.js");
+		   		drupal_add_js(drupal_get_path('module', "writing_tree")."/tree.js");	
+		   		$block['content'] = '<script type="text/javascript"> var treeNodeId = ' . $person->nid . '; var treeMode = "embed"; var embedId = "' . WRITINGTREE_TREE_MODE_EMBED_ID . '";</script>';
+			}
+		   
+		   if (WRITINGTREE_TREE_MODE == "modal"){
+				
+				drupal_add_css(drupal_get_path("module", "writing_tree")."/tree.css");
+		   		drupal_add_js(drupal_get_path('module', "writing_tree")."/d3.min.js");
+		   		drupal_add_js(drupal_get_path('module', "writing_tree")."/tree.js");	
+				drupal_add_js(drupal_get_path('module', "writing_tree")."/picoModal.js");		
+		   		$block['content'] = '<script type="text/javascript"> var treeNodeId = ' . $person->nid . '; var treeMode = "modal";</script>';
+	  			$block['content'] .= "
+		   
+		   	
+				<a id=\"launchModal\" href=\"#\">	
+					<div class=\"linkImage\"></div>
+					<div class=\"linkText\"> Visualize<br>$name</div>
+				</a>
+		   
+		   ";				
+ 		   }
+		    
+		   
+		   //
+		   
+		   
+	   
+	  }
+	} 
+	
+	return $block;
+	
+}
+
+
+
+
+
+/**
+ *  Controls the URL requests through the menu hook
+ */
+function writing_tree_menu() {
+  $items['tree/%'] = array(
+    'title' => 'Tree',
+    'page callback' => 'writing_tree_tree',
+	'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
+
+
+  //return json object for a user, passed a node id
+  $items['tree/json/%'] = array(
+    'title' => 'Tree',
+    'page callback' => 'writing_tree_json',
+	'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );  
+  
+  
+  
+  //return json object for a user, passed a node id
+  $items['network/json'] = array(
+    'title' => 'Tree',
+    'page callback' => 'writing_tree_network_json',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );    
+  
+  
+  $items['network'] = array(
+    'title' => 'Tree',
+    'page callback' => 'writing_tree_network',
+     'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
+  );  
+  
+  
+  $items['network/rebuild'] = array(
+    'title' => 'Tree',
+    'page callback' => 'writing_tree_network_rebuild',
+     'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
+  );    
+  
+  return $items;
+}
+
+
+/**
+ *  rebuild the json object
+ */
+function writing_tree_network_rebuild(){
+
+	writing_tree_network_json(false);
+	
+}
+
+
+/**
+ *  returns the json object for the newtork visualization
+ */
+function writing_tree_network_json($use_cache=false){
+	
+		$WRITINGTREE_USE_VIDS = array(1,3);
+		
+		if ($use_cache){	
+		   //check if there is a catached version.	
+		  if ($cached_blob = cache_get('writing_tree_network')) {
+			drupal_json_output($cached_blob->data); // The cached BLOB contains the cid and the data. We just want the data.
+			return true;
+		  }else{
+			//not built yet?
+			writing_tree_network_json(false);			  
+		  }
+		  
+		  
+		}else{
+			 
+			
+			$taxLookup = array();
+			//build a lookuptable of tax names
+			$query = db_select('taxonomy_vocabulary', 'n');	
+			$query->fields('n', array('name','vid'));
+			$query->condition('n.vid', $WRITINGTREE_USE_VIDS, 'IN');
+			$result = $query->execute();		
+			while($record = $result->fetchAssoc()) {				
+ 				$taxLookup[$record['vid']] = $record['name'];
+			}
+			  
+						
+			$tagLookup = array();
+			$tagTaxLookup = array();
+						
+			//build a lookuptable of tag names
+			$query = db_select('taxonomy_term_data', 'n');	
+			$query->fields('n', array('name','tid','vid'));
+			$query->condition('n.vid', $WRITINGTREE_USE_VIDS, 'IN');
+			$result = $query->execute();		
+			while($record = $result->fetchAssoc()) {				
+ 				$tagLookup[$record['tid']] = $record['name'];
+				$tagTaxLookup[$record['tid']] = $taxLookup[$record['vid']];
+			}
+			
+			//build it			
+			$nodes = array();
+			
+			//build the list of nodes
+			$query = db_select('node', 'n');	
+			$query->fields('n', array('title','type','nid'));
+			$query->condition('n.type', array('person','school_or_institution'), 'IN');
+			$result = $query->execute();		
+			while($record = $result->fetchAssoc()) {
+				
+				
+	
+				 
+				 	$tags = array();
+ 						
+					$tquery = db_select('taxonomy_index', 'n');	
+					$tquery->fields('n', array('tid'));
+					$tquery->condition('n.tid', $record['nid']);
+					$tresult = $tquery->execute();		
+					
+					while($trecord = $tresult->fetchAssoc()) {
+						
+						
+						//$explodedTags = explode(",",$tagLookup[$trecord['tid']]);
+						$explodedTags = preg_split( "/(;|,)/", $tagLookup[$trecord['tid']] );
+						foreach ($explodedTags as $x){
+							
+							$thisTag = array($tagTaxLookup[$trecord['tid']],trim($x));
+						
+							if (!in_array($thisTag,$tags)){
+								$tags[]=$thisTag;
+							}
+							
+						}
+						
+						
+						
+	
+					}
+				
+	
+				
+				$node = new stdClass;
+				$node->title = $record['title'];
+				$node->nid = $record['nid'];
+				$node->type = $record['type'];	
+				$node->tags = $tags;		
+				$nodes[intval($record['nid'])] = $node;
+				
+			}
+		
+		
+			$edges = array();
+			//build the edges
+			$query = db_select('field_data_endpoints', 'e');	
+			$query->fields('e', array('revision_id', 'endpoints_entity_id', 'endpoints_r_index', 'bundle'));
+			$query->condition('e.entity_type', 'relation');
+			$result = $query->execute();		
+			while($record = $result->fetchAssoc()) {
+			
+			
+				//have we built part of this edge yet?
+				if (array_key_exists(intval($record['revision_id']),$edges)){
+					
+					if ($record['endpoints_r_index']==0){
+						$edges[intval($record['revision_id'])]->source = $record['endpoints_entity_id'];				
+					}else{	
+						$edges[intval($record['revision_id'])]->target = $record['endpoints_entity_id'];					
+					}				
+					
+				}else{
+					
+					//not yet
+					$edge = new stdClass;
+					//$edge->id = $record['revision_id'];
+					$edge->type = $record['bundle'];
+					if ($record['endpoints_r_index']==0){
+						$edge->source = $record['endpoints_entity_id'];				
+					}else{
+						$edge->target = $record['endpoints_entity_id'];				
+					}
+					$edges[intval($record['revision_id'])] = $edge;			
+					
+				}
+			}
+			
+			
+	
+			
+			
+			$jsonObj = new stdClass;
+			$jsonObj->nodes = $nodes;
+			$jsonObj->edges = $edges;			
+			$jsonObj->date = date('Y-m-d h:ia');
+			 
+			drupal_json_output($jsonObj); 			
+			
+			$timestamp = time() + 60*60*24; // Create a timestamp for 24 hours from now.
+			cache_set("writing_tree_network", $jsonObj, 'cache', $timestamp); // Save the data for 24 hours.	
+			
+		}
+		
+		
+	
+}
+
+
+
+function writing_tree_network(){
+
+
+	//throw in the css file that hides the parts of the page that we don't want displayed as well as the tree css rules 
+	drupal_add_css(drupal_get_path('module', "writing_tree")."/network.css");
+	
+	//load d3 and our js file
+	drupal_add_js(drupal_get_path('module', "writing_tree")."/d3.min.js");
+	drupal_add_js(drupal_get_path('module', "writing_tree")."/network.js");	
+	drupal_add_js(drupal_get_path('module', "writing_tree")."/dragdealer.js");	
+	
+			
+
+	//pass the nid to javascript and set the chart div
+	return "	
+ 		<div id=\"chart\" class=\"scrollable\">
+			<div id=\"loadingInfo\">
+				<img src=\"" . drupal_get_path('module', "writing_tree")."/spinner.gif\">
+				<h1>Loading Network</h1>
+			</div>
+		</div>	
+		<div id=\"info\"></div>	
+		
+	";		
+	
+	
+	
+}
+
+
+/**
+ *  loads the tree visualization
+ */
+function writing_tree_tree($url_argument){
+	
+	//throw in the css file that hides the parts of the page that we don't want displayed as well as the tree css rules 
+	drupal_add_css(drupal_get_path('module', "writing_tree")."/tree.css");
+	
+
+	//sanitize
+	$url_argument = check_plain($url_argument);
+	$url_argument = str_replace("-","%",$url_argument);
+	
+	
+	// get the node id for this person
+	$query = db_select('node', 'n')
+		->fields('n', array('nid', 'title', 'created'))
+		->condition('title', $url_argument,'LIKE')
+		->range(0,1) 
+		->execute()
+		->fetchAssoc(); 	
+	
+	if ($query){
+		
+		$nid = $query['nid'];
+		
+	}else{
+	
+		//maybe they typed the url manually
+		return "Sorry! Could not find that person. Make sure it is spelled correctly (middle initial?) and try again.";	
+		
+	}
+		
+
+	
+	//load d3 and our js file
+	drupal_add_js(drupal_get_path('module', "writing_tree")."/d3.v2.min.js");
+	drupal_add_js(drupal_get_path('module', "writing_tree")."/tree.js");	
+	
+	
+		
+
+	//pass the nid to javascript and set the chart div
+	return "	
+		<script type=\"text/javascript\">	  		
+			var nid = $nid;	
+		</script>
+
+ 		<div id=\"chart\"></div>
+	
+	";	
+	
+	
+}
+
+/**
+ *  returns the json object for a person
+ */
+function writing_tree_json($url_argument){
+	
+	$url_argument = check_plain($url_argument);	 
+	$person = writing_tree_return_relationships($url_argument);	 
+	
+	$jsonAncestorObj = new stdClass;	
+	
+	//now we have the central person, find out if their ancestors or descendants have any children
+	//we are only going 2 levels deep,
+ 
+ 	$jsonAncestorObj->children=array(); 
+ 	foreach ($person->relationship_ancestors as $ancestor){
+		//0=name, 1=nid, 2=relationship type, 3 =image uri		
+		$ancestorObj = writing_tree_return_relationships($ancestor[1]);	
+		//for an ancestor we are only worried about their ancestors, because their descendants would overlap with the zero level person
+	
+		//build an json obj for this ancestor
+		$ancestorJson = objectifyArray($ancestor);
+		
+		//now go through and build a json object for each child, but not for the child's children	
+	 	foreach ($ancestorObj->relationship_ancestors  as $child){
+			$ancestorJson->children[] = objectifyArray($child);				
+		}
+		$jsonAncestorObj->children[]=$ancestorJson;
+	}
+	
+	$jsonDescendantObj = new stdClass;		
+	
+	//now for the descendants
+ 	$jsonDescendantObj->children=array(); 
+ 	foreach ($person->relationship_descendants as $descendant){
+		//0=name, 1=nid, 2=relationship type 3 = image		
+		$descendantObj = writing_tree_return_relationships($descendant[1]);	
+		//for an descendants we are only worried about their descendants, because their ancsetors would overlap with the zero level person
+	
+		//build an json obj for this ancestor
+		$descendantJson = objectifyArray($descendant);		
+		//now go through and build a json object for each child, but not for the child's children	
+	 	foreach ($descendantObj->relationship_descendants  as $child){
+			$descendantJson->children[] = objectifyArray($child);				
+		}	
+		$jsonDescendantObj->children[]=$descendantJson;
+	}	
+ 
+ 
+ 	//now build the worked_with json obj
+	$jsonWorkedObj = new stdClass;	
+	$jsonWorkedObj->children=array(); 	
+ 	
+	//we dont care about the children's childrens with worked with.
+ 	foreach ($person->relationship_worked_with as $workedWith){	
+		$workedWithJson = objectifyArray($workedWith);		
+		$jsonWorkedObj->children[]=$workedWithJson;
+			
+	}
+		
+	 
+	//put it all together 
+	$bigJsonObj = new stdClass; 	
+	$bigJsonObj->name = $person->name;
+	$bigJsonObj->nid = $person->nid;
+	$bigJsonObj->image = $person->image;
+	$bigJsonObj->descendants = $jsonDescendantObj;
+	$bigJsonObj->ancestors = $jsonAncestorObj;		
+	$bigJsonObj->workedWith = $jsonWorkedObj;			
+	$bigJsonObj->workedAt = $person->relationship_worked_at;		//not used in the tree but maybe for future use
+	$bigJsonObj->studiedAt = $person->relationship_studied_at;		//not used in the tree but maybe for future use			
+	
+	drupal_json_output($bigJsonObj);
+	
+	
+	return;
+	
+	
+}
+
+
+
+/**
+ *  objectify the person array into a person object
+ */
+function objectifyArray($array){	
+	$personObj = new stdClass;	
+	$personObj->name = $array[0];
+	$personObj->nid = $array[1];
+	$personObj->type = $array[2];
+	$personObj->image = $array[3];			
+	$personObj->children = array();	
+	return $personObj;	
+}
+
+/**
+ *  Passed a node id it will return stdClass object with sub arrays of ancestors. descendants. worked_with, worked_at
+ */
+function writing_tree_return_relationships($nid){
+	
+	$returnObj = new stdClass;
+	$returnObj->relationship_worked_with = array(); 
+	$returnObj->relationship_worked_at = array(); 
+	$returnObj->relationship_studied_at = array(); 	
+	$returnObj->relationship_descendants = array(); 
+	$returnObj->relationship_ancestors = array(); 		
+	
+
+	$returnObj->nid = $nid;
+ 
+	
+	//test if a real node id
+	if ($aNode = node_load($nid)){
+ 		
+		
+		//store thier title
+		$returnObj->name = $aNode->title;
+		
+		
+		$returnObj->image = "";
+		
+		//see if they have an image
+		if (property_exists($aNode,"field_person_image")){
+			if ( count($aNode->field_person_image) != 0){
+				//wtf is this undefined array bussiness?
+				$returnObj->image = file_create_url($aNode->field_person_image['und'][0]['uri']);
+			}
+		}
+		
+			
+		//get a list of RID(s) for this person	
+		$query = db_select('field_data_endpoints', 'e');	
+		$query->fields('e', array('revision_id'));
+		$query->condition('e.entity_type', 'relation');
+		$query->condition('e.endpoints_entity_id', intval($nid)); 
+		$result = $query->execute();		
+		while($record = $result->fetchAssoc()) {
+			
+			
+			
+			
+			//now loop through the relationships and figure out who is what to whom :(		
+			$query = db_select('field_data_endpoints', 'e');	
+			$query->fields('e', array('bundle','endpoints_entity_id','endpoints_r_index', 'revision_id'));
+			$query->condition('e.entity_type', 'relation');
+			$query->condition('e.revision_id', intval($record['revision_id'])); 
+			$relationship = $query->execute();		
+			
+			while($a_relationship = $relationship->fetchAssoc()) {
+				
+				
+				 
+				if ($a_relationship['bundle']=='mentored'){
+					
+					//not ourselves
+					if ($a_relationship['endpoints_entity_id'] != $nid){
+					
+						$person = node_load($a_relationship['endpoints_entity_id']);
+						 
+						//if it loads				
+						if ($person){				
+					
+							$useImage = '';
+							//see if they have an image
+							if (property_exists($person,"field_person_image")){
+								if ( count($person->field_person_image) != 0){
+									//wtf is this undefined array bussiness?
+									$useImage = file_create_url($person->field_person_image['und'][0]['uri']);
+								}
+							}									
+								
+							//get the type of mentoring this was							 
+							$query = db_select('field_revision_field_mentoring_type', 'm');	
+							$query->fields('m', array('field_mentoring_type_value'));
+							$query->condition('m.revision_id', $a_relationship['revision_id']);
+							
+							$mentor_type = $query->execute()->fetchAssoc();
+							if ($mentor_type){
+								$mentor_type = $mentor_type['field_mentoring_type_value'];	
+							}else{
+								$mentor_type = '';								
+							}							
+							
+							//was mentored by
+							if ($a_relationship['endpoints_r_index']==0){							
+								$returnObj->relationship_ancestors[]=array($person->title,$person->nid,$mentor_type, $useImage);															
+							//was a mentor to	
+							}else{
+								$returnObj->relationship_descendants[]=array($person->title,$person->nid,$mentor_type, $useImage);								
+							}
+							
+	
+						}
+						
+					}
+					
+				}
+				
+				
+				if ($a_relationship['bundle']=='worked_alongside'){
+					
+					
+							
+					//not ourselves
+					if ($a_relationship['endpoints_entity_id'] != $nid){
+						
+						$person = node_load($a_relationship['endpoints_entity_id']);
+						 
+						//if it loads				
+						if ($person){	
+
+							$useImage = '';
+							//see if they have an image
+							if (property_exists($person,"field_person_image")){
+								if ( count($person->field_person_image) != 0){
+									//wtf is this undefined array bussiness?
+									$useImage  = file_create_url($person->field_person_image['und'][0]['uri']);
+								}
+							}	
+							
+							//grab the type of colaboration
+							$query = db_select('field_revision_field_collaboration_type', 'c');	
+							$query->fields('c', array('field_collaboration_type_value'));
+							$query->condition('c.revision_id', $a_relationship['revision_id']);
+							
+							$colab_type = $query->execute()->fetchAssoc();
+							if ($colab_type){
+								$colab_type = $colab_type['field_collaboration_type_value'];	
+							}else{
+								$colab_type = '';								
+							}								
+						
+						
+						 
+							$returnObj->relationship_worked_with[]=array($person->title,$person->nid,$colab_type, $useImage);
+						}
+					}
+					
+					
+					
+				}
+
+				if ($a_relationship['bundle']=='studied_at'){					
+					//not ourselves
+					if ($a_relationship['endpoints_entity_id'] != $nid){						
+						$school = node_load($a_relationship['endpoints_entity_id']);						 
+						//if it loads				
+						if ($school){	
+							$returnObj->relationship_studied_at[]=array($school->title);
+						}
+					}								
+				}
+				
+				if ($a_relationship['bundle']=='worked_at'){					
+					//not ourselves
+					if ($a_relationship['endpoints_entity_id'] != $nid){						
+						$school = node_load($a_relationship['endpoints_entity_id']);						 
+						//if it loads				
+						if ($school){	
+							$returnObj->relationship_worked_at[]=array($school->title);
+						}
+					}								
+				}				
+  
+			}
+		}		
+	}
+	
+	
+	return $returnObj;
+	
+}
+
+
+
+

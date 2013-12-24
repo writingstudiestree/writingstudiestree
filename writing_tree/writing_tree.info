@@ -1,0 +1,4 @@
+name = Writing Tree
+description = Custom module for the writing tree site
+core = 7.x
+stylesheets[all][] = writing_tree.css
