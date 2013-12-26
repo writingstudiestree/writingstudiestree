@@ -170,28 +170,41 @@ function buildTree(){
 	
 
 	
-	
-	jQuery('#chart').bind('mousewheel DOMMouseScroll', function(event) {
+	// JB - this was included in Matt's version.  It overrides D3's handling of the scroll
+	// wheel, but it doesn't frame the display properly or handle non-mouse input devices.
+	// I improved it a bit, but the default D3 behavior seems to be better.
+	/*jQuery('#chart').bind('mousewheel DOMMouseScroll', function(event) {
 	  event.preventDefault();
 	  var delta = event.wheelDelta || -event.detail;
 	  
-	  if (zoomLevel > 2){zoomLevel = 2; return false;}
-	  if (zoomLevel < .31){zoomLevel = .31; return false;}
+	  // JB - save the position (in tree space) so that we can center the zoom properly.
+	  var x = (event.offsetX - transLevel[0]) / zoomLevel;
+	  var y = (event.offsetY - transLevel[1]) / zoomLevel;
 	  
-	  if (delta > 0){zoomLevel = zoomLevel + 0.1;}else{zoomLevel = zoomLevel - 0.1;}
+	  // JB - change in zoom should be proportionate to the delta.
+	  zoomLevel = zoomLevel - 0.008 * delta;
 	  
+	  // JB - this should be done after the change so that we don't overshoot.  We also
+	  // shouldn't return false here because the zoom still might have changed somewhat.
+	  if (zoomLevel > 2){zoomLevel = 2;}
+	  if (zoomLevel < .31){zoomLevel = .31;}
 	  
+	  // JB - need to make sure the spot under the cursor remains in place.
+	  event.translate = [event.offsetX - x * zoomLevel, event.offsetY - y * zoomLevel];
 	  
 	  redraw();
 	 
 	}); 
-	
+	*/
 	
 	function redraw(){
 		
 		
 		if (d3.event){
-			//zoomLevel = d3.event.scale*zoomVal;
+		    // JB - Uncommented this to reinstate D3's default zoom behavior.  The old,
+		    // commented-out version scaled the zoom by zoomVal, but that doesn't really
+		    // make sense.
+			zoomLevel = d3.event.scale;
 			transLevel = d3.event.translate;		
 		}
 		
@@ -262,11 +275,6 @@ function buildTree(){
 			  
 
 		vis = vis.append("g"); 
-
-
-	vis.attr("transform",
-	  "translate(" + transLevel + ")"
-	  + " scale(" + zoomLevel + ")");
 	
 	
 	//request the json
@@ -342,12 +350,15 @@ function buildTree(){
 		if (totalWorkedWithChildren>5 && totalDesendentChildren <= 5){totalDesendentChildren = 8;}
 	
 	
-	
+		
+		
 		//how wide do we need to be
-		if ((visWidth / 30) * totalAncestorChildren > (visWidth / 30) * totalDesendentChildren){
-			var widthOfTrees = (visWidth / 30) * totalAncestorChildren;
+		var ancestorWidth = (visWidth / 30) * totalAncestorChildren;
+		var descendantWidth = (visWidth / 30) * totalDesendentChildren;
+		if (ancestorWidth > descendantWidth){
+			var widthOfTrees = ancestorWidth;
 		}else{
-			var widthOfTrees = (visWidth / 30) * totalDesendentChildren;
+			var widthOfTrees = descendantWidth;
 		}
 		
 		if (totalAncestorChildren >= 28 || totalDesendentChildren >= 28){
@@ -360,17 +371,108 @@ function buildTree(){
  			shiftRight = -1500;
 			
 		}	
-		
 	
+	
+	    // JB - have to create all 3 trees at the beginning so that we can calculate the positioning.
 	
 		//make the tree "longer" if there are more kids, the (visHeight / 50) is arbitrary, could be tweaked 
-		var tree = d3.layout.tree().size([widthOfTrees, (visHeight / 50) * totalDesendentChildren]);	
+		var descendantTree = d3.layout.tree().size([widthOfTrees, (visHeight / 50) * totalDesendentChildren]);	
+		var ancestorTree = d3.layout.tree().size([widthOfTrees, (visHeight / 50) * totalAncestorChildren]);	
+		
+		//this is the sideways tree, it needs to be a little longer to clear the vertical trees.
+		var horzTreeX = (800 / 14) * totalWorkedWithChildren;
+  		var horzTreeY = (900 / 20) * totalWorkedWithChildren;
+ 		if (horzTreeY <= widthOfTrees){horzTreeY = widthOfTrees / 2;}
+		var workedWithTree = d3.layout.tree().size([horzTreeX,horzTreeY]);
+		
+		var descendantNodes = descendantTree.nodes(json.descendants);
+		var ancestorNodes = ancestorTree.nodes(json.ancestors);
+		var workedWithNodes = workedWithTree.nodes(json.workedWith);
+		
+		//the line diff is just the x location of the central node + 25, half of the central node width
+		if (useAncestor){
+			var lineDiff = ancestorNodes[0].x - 25;
+		}else{
+			var lineDiff = descendantNodes[0].x - 25;
+		}
+	
+	
+		// JB - this is needed to get the ancestor and descendant trees to line up correctly.
+		var descendentRootOffset = descendantNodes[0].x;
+		var ancestorRootOffset = ancestorNodes[0].x;
+		var descendantOffset = ancestorRootOffset - descendentRootOffset;
+		
+		
+	
+		// JB - set up the zoom so that the display is properly framed.
+		var xMin = ancestorNodes[0].x + shiftRight;
+		var xMax = ancestorNodes[0].x + shiftRight;
+		var yMin = -ancestorNodes[0].y + shiftDown;
+		var yMax = -ancestorNodes[0].y + shiftDown;
+		function updateMinMax(x, y) {
+    		if (x < xMin) {
+    		    xMin = x;
+    		} else if (x > xMax) {
+    		    xMax = x;
+    		}
+    		if (y < yMin) {
+    		    yMin = y;
+    		} else if (y > yMax) {
+    		    yMax = y;
+    		}
+    	}
+		for (var i = 0; i < descendantNodes.length; i++) {
+		    updateMinMax(descendantNodes[i].x + shiftRight + descendantOffset,
+		                 descendantNodes[i].y + shiftDown);
+    	}
+		for (var i = 0; i < ancestorNodes.length; i++) {
+		    updateMinMax(ancestorNodes[i].x + shiftRight,
+		                 -ancestorNodes[i].y + shiftDown);
+    	}
+		for (var i = 0; i < workedWithNodes.length; i++) {
+		    updateMinMax(-workedWithNodes[i].y + lineDiff + shiftRight,
+		                 workedWithNodes[i].x - horzTreeX/2 + shiftDown);
+    	}
+    	
+    	// Total width of everything displayed, calculated to the centers of the icons (not
+    	// including the labels), plus a 100-pixel border around the edge.
+    	var totalWidth = xMax - xMin + 200.0;
+    	var totalHeight = yMax - yMin + 200.0;
+    	
+    	var screenWidth = jQuery("#modalTreeHolder").width();
+    	var screenHeight = jQuery("#modalTreeHolder").height();
+    	
+    	// These are the zoom levels needed to fit either vertically or horizontally.
+    	var horizScaleFactor = screenWidth / totalWidth;
+    	var vertScaleFactor = screenHeight / totalHeight;
+    	
+    	// Set up the framing.  This puts a 100-unit border around the edge, providing room for most
+    	// labels attached to works-with people.  If you want to adjust this, you will also need
+    	// to adjust the calculation of totalWidth and totalHeight.
+    	if (horizScaleFactor < vertScaleFactor) {
+        	zoomLevel = horizScaleFactor;
+    	    shiftRight += 100 - xMin;
+    	    shiftDown += (screenHeight / zoomLevel - (yMax + yMin)) * 0.5;
+        } else {
+        	zoomLevel = vertScaleFactor;
+    	    shiftRight += (screenWidth / zoomLevel - (xMax + xMin)) * 0.5;
+    	    shiftDown += 100 - yMin;
+        }
+		
+		zoom.scale(zoomLevel);
+		
+		
+		// JB - moved this here so that the zoom settings can depend on the JSON data.
+        vis.attr("transform",
+	        "translate(" + transLevel + ")"
+	        + " scale(" + zoomLevel + ")");
  		
+ 		
+ 		var tree = descendantTree;
 
 		//which way do we want the path to go, up or down, or sidewaysss
-		var diagonalDescendant = d3.svg.diagonal().projection(function(d) {  return [d.x + shiftRight, (d.y)+shiftDown]; });
+		var diagonalDescendant = d3.svg.diagonal().projection(function(d) {  return [d.x + shiftRight + descendantOffset, (d.y)+shiftDown]; });
 		
-		  
 				
 	 
 		var nodesDescendant = tree.nodes(json.descendants);
@@ -403,7 +505,7 @@ function buildTree(){
 		var nodeDescendant = vis.selectAll("g.descendant")
 		.data(nodesDescendant)
 		.enter().append("svg:g")
-		.attr("transform", function(d) { return "translate(" + (d.x + shiftRight) + "," + (d.y + shiftDown) + ")"; })
+		.attr("transform", function(d) { return "translate(" + (d.x + shiftRight + descendantOffset) + "," + (d.y + shiftDown) + ")"; })
 		.attr("class",function(d){if (d.depth==0){return "rootNode";} return "childNode";})
 		.on("mouseover", function(d){ tooltip.style("visibility", "visible"); tooltip.html(d.name); })
 		.on("mousemove", function(d){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
@@ -527,7 +629,7 @@ function buildTree(){
 		
 
 		//reset the tree layout
-		tree = d3.layout.tree().size([widthOfTrees, (visHeight / 50) * totalAncestorChildren]);	
+		tree = ancestorTree;	
   		
 		
 		var nodesAncestor = tree.nodes(json.ancestors);
@@ -688,31 +790,12 @@ function buildTree(){
 
 
 
-		//this is the sideways tree, it needs to be a little longer to clear the vertical trees.
-		var horzTreeX = (800 / 14) * totalWorkedWithChildren;
-  		var horzTreeY = (900 / 20) * totalWorkedWithChildren;
- 
- 
- 		if (horzTreeY <= widthOfTrees){horzTreeY = widthOfTrees / 2;}
-	
-	
-	
-		tree = d3.layout.tree().size([horzTreeX,horzTreeY]);
+		tree = workedWithTree;
 
 		
 		
 		var nodesWorkedWith = tree.nodes(json.workedWith);
 		var linksWorkedWith = tree.links(nodesWorkedWith);				
-		
-	
-		//the line diff is just the x location of the central node + 25, half of the central node width
-		
- 		
-		if (useAncestor){
-			var lineDiff = nodesAncestor[0].x - 25;
-		}else{
-			var lineDiff = nodesDescendant[0].x - 25;
-		}
 		
 		
 		var diagonalWorkedWith = d3.svg.diagonal().projection(function(d) { return [(d.y*-1 + lineDiff + shiftRight), d.x-horzTreeX/2 + shiftDown]; });
@@ -964,6 +1047,7 @@ function buildTree(){
 		
 		
 	}
+	
 	
 	//break a name into two parts even if there are multiple spaces
 	function splitName(name){ 
