@@ -689,7 +689,6 @@ function buildInterface(){
 
 function buildNetwork(){
 	
-	
  
 	var tooltip = d3.select("body")
 			.append("div")
@@ -777,6 +776,7 @@ function buildNetwork(){
 					dy = d.target.y - d.source.y,
 					dr = Math.sqrt(dx * dx + dy * dy);
 				return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+				//return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
 			});
 		
 		
@@ -991,7 +991,8 @@ function buildNetwork(){
 		  .style("fill","#fff")
 		  .style("stroke","#C63F3F");
 		  
-		node.append("text")
+		// JB - disabled this because it does seem to be needed
+		/*node.append("text")
 			  .attr("x", function(d) { return 0; })
 			  .attr("y", function(d) { return 15; })
 			  .attr("class", "label")
@@ -1000,7 +1001,7 @@ function buildNetwork(){
 				
 			  .attr("text-anchor", function(d) { return "middle";})
 			
-			  .text(function(d) { return d.title; });					  
+			  .text(function(d) { return d.title; });	*/			  
 		
 		
 		
@@ -1008,6 +1009,7 @@ function buildNetwork(){
 						
 
 			node.append("svg:text")
+			    .attr("class", "nameTag") // JB - gave the name tags a class
 				.style("fill","#fff")
 				.text(function(d){ 
 				
@@ -1017,13 +1019,6 @@ function buildNetwork(){
 					
 				 })
 				.attr("text-anchor", "middle")
-				.attr("display", function(d) { 
-					if (d.type == "person"){
-						return "block";	
-					}else{
-						return "none";
-					}
-				})
 				.attr("font-size", function(d) { 
 				
 						if (d.type == "person"){
@@ -1045,6 +1040,9 @@ function buildNetwork(){
 						}
 						
 				}); 
+				
+			// JB - moved this into a function so it can be updated on zoom.
+			setNameTagVisibility();
 		}
 		  
  	 
@@ -1284,6 +1282,8 @@ function toggleLabels(show){
 
 function redraw(useScale) {
 
+    var scaleChanged = scale != d3.event.scale;
+
 	//store the last event data
 	trans=d3.event.translate;
 	scale=d3.event.scale;  
@@ -1298,6 +1298,27 @@ function redraw(useScale) {
 	zoomWidgetObjDoZoom = false;	
 	zoomWidgetObj.setValue(0,(scale/4)); 
 	 
+	 
+	// JB - update which name tags are visible.
+	if (scaleChanged) {
+    	setNameTagVisibility();
+    }
+}
+
+
+function setNameTagVisibility() {
+
+	d3.selectAll(".nameTag")
+		.attr("display", function(d) { 
+			if (d.type != "person"){
+				return "none";
+			}
+			if (d.size * scale < 5.0) {
+			    // JB - hide text if it is very small.
+			    return "none";
+			}
+			return "block";	
+		})
 }
 
 
