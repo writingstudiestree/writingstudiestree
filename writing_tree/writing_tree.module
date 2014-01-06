@@ -1,6 +1,16 @@
 <?php
 
 
+define("WRITINGTREE_TREE_MODE",     "modal");	//open the tree visualization in a modal window
+//define("WRITINGTREE_TREE_MODE",     "embed");	    //Embed the tree in the HTML, there must be 
+//define("WRITINGTREE_TREE_MODE_EMBED_ID",     "main-container");	//the id of the div to embed the tree vis in
+
+
+//$WRITINGTREE_USE_VIDS =  array(1,3);	//which vocab ids to include, defined below in writing_tree_network_json()
+
+
+
+
 
 function writing_tree_help($path, $arg) {
  
@@ -40,7 +50,7 @@ function writing_tree_block_view($delta = '') {
 		if(user_access('access content')){
  			
 	 		$path = current_path();
-			$path = split("/",$path);
+			$path = explode("/",$path);
 			$path = @$path[1];
 			
 			//we only want nodes
@@ -61,14 +71,48 @@ function writing_tree_block_view($delta = '') {
 				 
 		   
 		   //return the block, styled in writing_tree.css
+		   /*
 		   $block['content'] = "
 		   
+		   	
 				<a href=\"/tree/$path\">	
 					<div class=\"linkImage\"></div>
 					<div class=\"linkText\"> Visualize<br>$name</div>
 				</a>
 		   
 		   ";
+		   */
+		   
+		   //load as a modal window in the person node view
+		    if (WRITINGTREE_TREE_MODE == "embed"){
+				drupal_add_css(drupal_get_path("module", "writing_tree")."/tree.css");
+		   		drupal_add_js(drupal_get_path('module', "writing_tree")."/d3.min.js");
+		   		drupal_add_js(drupal_get_path('module', "writing_tree")."/tree.js");	
+		   		$block['content'] = '<script type="text/javascript"> var treeNodeId = ' . $person->nid . '; var treeMode = "embed"; var embedId = "' . WRITINGTREE_TREE_MODE_EMBED_ID . '";</script>';
+			}
+		   
+		   if (WRITINGTREE_TREE_MODE == "modal"){
+				
+				drupal_add_css(drupal_get_path("module", "writing_tree")."/tree.css");
+		   		drupal_add_js(drupal_get_path('module', "writing_tree")."/d3.min.js");
+		   		drupal_add_js(drupal_get_path('module', "writing_tree")."/tree.js");	
+				drupal_add_js(drupal_get_path('module', "writing_tree")."/picoModal.js");		
+		   		$block['content'] = '<script type="text/javascript"> var treeNodeId = ' . $person->nid . '; var treeMode = "modal";</script>';
+	  			$block['content'] .= "
+		   
+		   	
+				<a id=\"launchModal\" href=\"#\">	
+					<div class=\"linkImage\"></div>
+					<div class=\"linkText\"> Visualize<br>$name</div>
+				</a>
+		   
+		   ";				
+ 		   }
+		    
+		   
+		   //
+		   
+		   
 	   
 	  }
 	} 
@@ -149,6 +193,7 @@ function writing_tree_network_rebuild(){
  */
 function writing_tree_network_json($use_cache=false){
 	
+		$WRITINGTREE_USE_VIDS = array(1,3);
 		
 		if ($use_cache){	
 		   //check if there is a catached version.	
@@ -162,10 +207,33 @@ function writing_tree_network_json($use_cache=false){
 		  
 		  
 		}else{
+			 
 			
-			//build it	
-		
-		
+			$taxLookup = array();
+			//build a lookuptable of tax names
+			$query = db_select('taxonomy_vocabulary', 'n');	
+			$query->fields('n', array('name','vid'));
+			$query->condition('n.vid', $WRITINGTREE_USE_VIDS, 'IN');
+			$result = $query->execute();		
+			while($record = $result->fetchAssoc()) {				
+ 				$taxLookup[$record['vid']] = $record['name'];
+			}
+			  
+						
+			$tagLookup = array();
+			$tagTaxLookup = array();
+						
+			//build a lookuptable of tag names
+			$query = db_select('taxonomy_term_data', 'n');	
+			$query->fields('n', array('name','tid','vid'));
+			$query->condition('n.vid', $WRITINGTREE_USE_VIDS, 'IN');
+			$result = $query->execute();		
+			while($record = $result->fetchAssoc()) {				
+ 				$tagLookup[$record['tid']] = $record['name'];
+				$tagTaxLookup[$record['tid']] = $taxLookup[$record['vid']];
+			}
+			
+			//build it			
 			$nodes = array();
 			
 			//build the list of nodes
@@ -174,11 +242,46 @@ function writing_tree_network_json($use_cache=false){
 			$query->condition('n.type', array('person','school_or_institution'), 'IN');
 			$result = $query->execute();		
 			while($record = $result->fetchAssoc()) {
+				
+				
+	
+				 
+				 	$tags = array();
+ 						
+					$tquery = db_select('taxonomy_index', 'n');	
+					$tquery->fields('n', array('tid'));
+					$tquery->condition('n.tid', $record['nid']);
+					$tresult = $tquery->execute();		
+					
+					while($trecord = $tresult->fetchAssoc()) {
+						
+						
+						//$explodedTags = explode(",",$tagLookup[$trecord['tid']]);
+						$explodedTags = preg_split( "/(;|,)/", $tagLookup[$trecord['tid']] );
+						foreach ($explodedTags as $x){
+							
+							$thisTag = array($tagTaxLookup[$trecord['tid']],trim($x));
+						
+							if (!in_array($thisTag,$tags)){
+								$tags[]=$thisTag;
+							}
+							
+						}
+						
+						
+						
+	
+					}
+				
+	
+				
 				$node = new stdClass;
 				$node->title = $record['title'];
 				$node->nid = $record['nid'];
-				$node->type = $record['type'];		
+				$node->type = $record['type'];	
+				$node->tags = $tags;		
 				$nodes[intval($record['nid'])] = $node;
+				
 			}
 		
 		
@@ -245,14 +348,20 @@ function writing_tree_network(){
 	drupal_add_css(drupal_get_path('module', "writing_tree")."/network.css");
 	
 	//load d3 and our js file
-	drupal_add_js(drupal_get_path('module', "writing_tree")."/d3.v2.min.js");
+	drupal_add_js(drupal_get_path('module', "writing_tree")."/d3.min.js");
 	drupal_add_js(drupal_get_path('module', "writing_tree")."/network.js");	
+	drupal_add_js(drupal_get_path('module', "writing_tree")."/dragdealer.js");	
 	
 			
 
 	//pass the nid to javascript and set the chart div
 	return "	
- 		<div id=\"chart\"></div>	
+ 		<div id=\"chart\" class=\"scrollable\">
+			<div id=\"loadingInfo\">
+				<img src=\"" . drupal_get_path('module', "writing_tree")."/spinner.gif\">
+				<h1>Loading Network</h1>
+			</div>
+		</div>	
 		<div id=\"info\"></div>	
 		
 	";		
@@ -332,7 +441,7 @@ function writing_tree_json($url_argument){
  
  	$jsonAncestorObj->children=array(); 
  	foreach ($person->relationship_ancestors as $ancestor){
-		//0=name, 1=nid, 2=relationship type		
+		//0=name, 1=nid, 2=relationship type, 3 =image uri		
 		$ancestorObj = writing_tree_return_relationships($ancestor[1]);	
 		//for an ancestor we are only worried about their ancestors, because their descendants would overlap with the zero level person
 	
@@ -351,7 +460,7 @@ function writing_tree_json($url_argument){
 	//now for the descendants
  	$jsonDescendantObj->children=array(); 
  	foreach ($person->relationship_descendants as $descendant){
-		//0=name, 1=nid, 2=relationship type		
+		//0=name, 1=nid, 2=relationship type 3 = image		
 		$descendantObj = writing_tree_return_relationships($descendant[1]);	
 		//for an descendants we are only worried about their descendants, because their ancsetors would overlap with the zero level person
 	
@@ -381,6 +490,7 @@ function writing_tree_json($url_argument){
 	$bigJsonObj = new stdClass; 	
 	$bigJsonObj->name = $person->name;
 	$bigJsonObj->nid = $person->nid;
+	$bigJsonObj->image = $person->image;
 	$bigJsonObj->descendants = $jsonDescendantObj;
 	$bigJsonObj->ancestors = $jsonAncestorObj;		
 	$bigJsonObj->workedWith = $jsonWorkedObj;			
@@ -404,7 +514,8 @@ function objectifyArray($array){
 	$personObj = new stdClass;	
 	$personObj->name = $array[0];
 	$personObj->nid = $array[1];
-	$personObj->type = $array[2];			
+	$personObj->type = $array[2];
+	$personObj->image = $array[3];			
 	$personObj->children = array();	
 	return $personObj;	
 }
@@ -423,11 +534,25 @@ function writing_tree_return_relationships($nid){
 	
 
 	$returnObj->nid = $nid;
-
+ 
 	
-	//test if a real node id and grab their name too
-	if ($returnObj->name = node_load($nid)->title){
+	//test if a real node id
+	if ($aNode = node_load($nid)){
+ 		
 		
+		//store thier title
+		$returnObj->name = $aNode->title;
+		
+		
+		$returnObj->image = "";
+		
+		//see if they have an image
+		if (property_exists($aNode,"field_person_image")){
+			if ( count($aNode->field_person_image) != 0){
+				//wtf is this undefined array bussiness?
+				$returnObj->image = file_create_url($aNode->field_person_image['und'][0]['uri']);
+			}
+		}
 		
 			
 		//get a list of RID(s) for this person	
@@ -460,7 +585,16 @@ function writing_tree_return_relationships($nid){
 						$person = node_load($a_relationship['endpoints_entity_id']);
 						 
 						//if it loads				
-						if ($person){							
+						if ($person){				
+					
+							$useImage = '';
+							//see if they have an image
+							if (property_exists($person,"field_person_image")){
+								if ( count($person->field_person_image) != 0){
+									//wtf is this undefined array bussiness?
+									$useImage = file_create_url($person->field_person_image['und'][0]['uri']);
+								}
+							}									
 								
 							//get the type of mentoring this was							 
 							$query = db_select('field_revision_field_mentoring_type', 'm');	
@@ -476,10 +610,10 @@ function writing_tree_return_relationships($nid){
 							
 							//was mentored by
 							if ($a_relationship['endpoints_r_index']==0){							
-								$returnObj->relationship_ancestors[]=array($person->title,$person->nid,$mentor_type);															
+								$returnObj->relationship_ancestors[]=array($person->title,$person->nid,$mentor_type, $useImage);															
 							//was a mentor to	
 							}else{
-								$returnObj->relationship_descendants[]=array($person->title,$person->nid,$mentor_type);								
+								$returnObj->relationship_descendants[]=array($person->title,$person->nid,$mentor_type, $useImage);								
 							}
 							
 	
@@ -501,7 +635,16 @@ function writing_tree_return_relationships($nid){
 						 
 						//if it loads				
 						if ($person){	
-						
+
+							$useImage = '';
+							//see if they have an image
+							if (property_exists($person,"field_person_image")){
+								if ( count($person->field_person_image) != 0){
+									//wtf is this undefined array bussiness?
+									$useImage  = file_create_url($person->field_person_image['und'][0]['uri']);
+								}
+							}	
+							
 							//grab the type of colaboration
 							$query = db_select('field_revision_field_collaboration_type', 'c');	
 							$query->fields('c', array('field_collaboration_type_value'));
@@ -514,8 +657,9 @@ function writing_tree_return_relationships($nid){
 								$colab_type = '';								
 							}								
 						
+						
 						 
-							$returnObj->relationship_worked_with[]=array($person->title,$person->nid,$colab_type);
+							$returnObj->relationship_worked_with[]=array($person->title,$person->nid,$colab_type, $useImage);
 						}
 					}
 					
