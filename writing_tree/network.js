@@ -991,8 +991,7 @@ function buildNetwork(){
 		  .style("fill","#fff")
 		  .style("stroke","#C63F3F");
 		  
-		// JB - disabled this because it does seem to be needed
-		/*node.append("text")
+		node.append("text")
 			  .attr("x", function(d) { return 0; })
 			  .attr("y", function(d) { return 15; })
 			  .attr("class", "label")
@@ -1001,7 +1000,7 @@ function buildNetwork(){
 				
 			  .attr("text-anchor", function(d) { return "middle";})
 			
-			  .text(function(d) { return d.title; });	*/			  
+			  .text(function(d) { return d.title; });				  
 		
 		
 		
