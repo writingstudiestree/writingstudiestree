@@ -27,6 +27,8 @@ var nameToId = {}
 var inSituTimeOut = null;
 var inSituTimeOutIsOn = false;
 var tickCount = 0;
+var minZoom = 0.1; // JB - added these
+var maxZoom = 6.0;
 
 //adjust quality
 var highQuality = {
@@ -662,15 +664,14 @@ function buildInterface(){
 		{
 			//if the value is the same as the intial value exit, to prevent a zoom even being called onload
 			if (y==0.25555){return false;}
-			//prevent too muuch zooooom
-			if (y<0.01){return false;}			 // Changed by Ben from y<0.05, to allow us to zoom out and see singlets
 			
+			// JB - changed this to handle the scale in a better way
+			y *= (maxZoom - minZoom);
+			y += minZoom;
 			
 			//are we  zooming based on a call from interaction with the slider, or is this callback being triggerd by the mouse event updating the slider position.
 			if (zoomWidgetObjDoZoom == true){
 
-				y =y *4;			
-				
 				//this is how it works now until i figure out how to handle this better.
 				//translate to the middle of the vis and apply the zoom level
 				vis.attr("transform", "translate(" + [(visWidth/2)-(visWidth*y/2),(visHeight/2)-(visHeight*y/2)] + ")"  + " scale(" + y+ ")");  	
@@ -698,7 +699,7 @@ function buildNetwork(){
 	zoom = d3.behavior.zoom()
 		.translate(trans)
 		.scale(scale)
-		.scaleExtent([0.25,6])
+		.scaleExtent([minZoom,maxZoom])
 		.on("zoom", redraw);
 		
 			
@@ -1295,7 +1296,7 @@ function redraw(useScale) {
 	
 	//we need to update the zoom slider, set the boolean to false so the slider change does not trigger a zoom change in the vis (from the slider callback function)  
 	zoomWidgetObjDoZoom = false;	
-	zoomWidgetObj.setValue(0,(scale/4)); 
+	zoomWidgetObj.setValue(0,(scale-minZoom) / (maxZoom - minZoom)); 
 	 
 	 
 	// JB - update which name tags are visible.
