@@ -773,11 +773,17 @@ function buildNetwork(){
 		
 			vis.selectAll(".link")
 			.attr("d", function(d) {
-				var dx = d.target.x - d.source.x,
-					dy = d.target.y - d.source.y,
-					dr = Math.sqrt(dx * dx + dy * dy);
-				return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
-				//return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
+			    // JB - only use curved lines when needed.  Also changed from arcs to Bezier curves.
+			    if (d.handleOffset != 0.0) {
+				    var dx = d.target.x - d.source.x,
+					    dy = d.target.y - d.source.y,
+					    invnorm = 1.0 / Math.sqrt(dx * dx + dy * dy),
+					    handlex = (d.target.x + d.source.x) * 0.5 + dy * invnorm * d.handleOffset,
+					    handley = (d.target.y + d.source.y) * 0.5 - dx * invnorm * d.handleOffset;
+				    return "M" + d.source.x + "," + d.source.y + "C" + handlex + "," + handley + " " + handlex + "," + handley + " " + d.target.x + "," + d.target.y;
+				} else {
+    				return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
+    			}
 			});
 		
 		
@@ -807,8 +813,10 @@ function buildNetwork(){
 
 	
 	
+	 // JB - removed the key so that multiple connections between the same two nodes
+	 // will both appear.
 	 vis.selectAll(".link")
-		.data(links, function(d) { return d.source.id + "-" + d.target.id; })
+		.data(links)//, function(d) { return d.source.id + "-" + d.target.id; })
 		.enter().append('path')
  		  .attr("x1", function(d) { return d.source.x; })
 		  .attr("y1", function(d) { return d.source.y; })
@@ -1111,7 +1119,7 @@ function buildNetwork(){
  			nodes.push({ id: dataObj.nodes[aNode].nid, title: dataObj.nodes[aNode].title, type:dataObj.nodes[aNode].type, size:1, vis : true})
 			
 			
-			connectionIndex[dataObj.nodes[aNode].nid] = [];
+			connectionIndex[dataObj.nodes[aNode].nid] = {};
 			nameToId[dataObj.nodes[aNode].title] = dataObj.nodes[aNode].nid;
 			
 			//loop through the tags attached to this person and add it to the tag index to faclitate filtering
@@ -1159,17 +1167,44 @@ function buildNetwork(){
 			
 			if (target != -1 && source != -1){	
 			
-				links.push({source: nodes[source], target: nodes[target], type: dataObj.edges[aEdge].type, vis : true});					
+			    var link = {source: nodes[source], target: nodes[target], type: dataObj.edges[aEdge].type, vis : true, handleOffset : 0.0};
+				links.push(link);					
 				
-				connectionIndex[nodes[source].id].push(nodes[target].id);
-				connectionIndex[nodes[target].id].push(nodes[source].id);
+				// JB - keep track of how many links there are between each pair of nodes.
+				if (nodes[target].id in connectionIndex[nodes[source].id]) {
+    				connectionIndex[nodes[source].id][nodes[target].id].push(link);
+    			} else {
+    				connectionIndex[nodes[source].id][nodes[target].id] = [link];
+    			}		
+				
+				if (nodes[source].id in connectionIndex[nodes[target].id]) {
+    				connectionIndex[nodes[target].id][nodes[source].id].push(link);
+    			} else {
+    				connectionIndex[nodes[target].id][nodes[source].id] = [link];
+    			}
 			}
-			
-	
-			
 		
 		}
 
+
+        // JB - Make a note of doubled-up (or tripled-up, etc) edges.
+        for (x in connectionIndex) {
+            for (y in connectionIndex[x]) {
+                if (connectionIndex[x][y].length > 1) {
+                    var handleOffset = -20.0 * (connectionIndex[x][y].length - 1);
+                    var handleOffsetIncr = 40.0;
+                    for (var i in connectionIndex[x][y]) {
+                        if (connectionIndex[x][y][i].source.id < connectionIndex[x][y][i].target.id) {
+                            connectionIndex[x][y][i].handleOffset = handleOffset;
+                        } else {
+                            // This is to account for the fact that the curves will go in different directions depending on which way the connection goes
+                            connectionIndex[x][y][i].handleOffset = -handleOffset;
+                        }
+                        handleOffset += handleOffsetIncr;
+                    }
+                }
+            }
+        }
 
 		
 		restart();
@@ -1236,13 +1271,13 @@ function filterInSitu(){
 
 		for (y in connectionIndex[inSituFilter[x]]){
 		
- 			d3.selectAll("#aNode" + connectionIndex[inSituFilter[x]][y]).style("opacity", 1);	
-			d3.selectAll(".aLink" + connectionIndex[inSituFilter[x]][y]).style("opacity", 1);	
+ 			d3.selectAll("#aNode" + y).style("opacity", 1);	
+			d3.selectAll(".aLink" + y).style("opacity", 1);	
 			
 			//and their connected nodes
-			for (z in connectionIndex[connectionIndex[inSituFilter[x]][y]]){
+			for (z in connectionIndex[y]){
 				
- 				d3.selectAll("#aNode" + connectionIndex[connectionIndex[inSituFilter[x]][y]][z]).style("opacity", 1);	
+ 				d3.selectAll("#aNode" + z).style("opacity", 1);	
 					
 				
 			}
