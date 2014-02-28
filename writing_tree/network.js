@@ -773,17 +773,52 @@ function buildNetwork(){
 		
 			vis.selectAll(".link")
 			.attr("d", function(d) {
+				var dx = d.target.x - d.source.x,
+					dy = d.target.y - d.source.y,
+					invnorm = 1.0 / Math.sqrt(dx * dx + dy * dy),
+                    xnormal = dx * invnorm,
+                    ynormal = dy * invnorm,
+                    targetSize = returnNodeSize(d.target) * 0.75,
+                    linetox = d.target.x - xnormal * (targetSize + 5),
+                    linetoy = d.target.y - ynormal * (targetSize + 5);
 			    // JB - only use curved lines when needed.  Also changed from arcs to Bezier curves.
 			    if (d.handleOffset != 0.0) {
-				    var dx = d.target.x - d.source.x,
-					    dy = d.target.y - d.source.y,
-					    invnorm = 1.0 / Math.sqrt(dx * dx + dy * dy),
-					    handlex = (d.target.x + d.source.x) * 0.5 + dy * invnorm * d.handleOffset,
-					    handley = (d.target.y + d.source.y) * 0.5 - dx * invnorm * d.handleOffset;
-				    return "M" + d.source.x + "," + d.source.y + "C" + handlex + "," + handley + " " + handlex + "," + handley + " " + d.target.x + "," + d.target.y;
+				    var handlex = (linetox + d.source.x) * 0.5 + dy * invnorm * d.handleOffset,
+					    handley = (linetoy + d.source.y) * 0.5 - dx * invnorm * d.handleOffset;
+				    return "M" + d.source.x + "," + d.source.y + "C" + handlex + "," + handley + " " + handlex + "," + handley + " " + linetox + "," + linetoy;
 				} else {
-    				return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
+    				return "M" + d.source.x + "," + d.source.y + "L" + linetox + "," + linetoy;
     			}
+			});
+		
+			vis.selectAll(".linkArrow")
+			.attr("points", function(d) {
+				var dx = d.target.x - d.source.x,
+					dy = d.target.y - d.source.y,
+					invnorm = 1.0 / Math.sqrt(dx * dx + dy * dy),
+                    xnormal = dx * invnorm,
+                    ynormal = dy * invnorm,
+                    targetSize = returnNodeSize(d.target) * 0.75,
+                    linetox = d.target.x - xnormal * targetSize,
+                    linetoy = d.target.y - ynormal * targetSize;
+                var vx, vy;
+			    if (d.handleOffset != 0.0) {
+				    var handlex = (linetox + d.source.x) * 0.5 + dy * invnorm * d.handleOffset,
+					    handley = (linetoy + d.source.y) * 0.5 - dx * invnorm * d.handleOffset;
+                    vx = linetox - handlex;
+                    vy = linetoy - handley;
+                } else {
+                    vx = linetox - d.source.x;
+                    vy = linetoy - d.source.y;
+                }
+                var medangle = Math.atan2(-vx, -vy);
+                var angle1 = medangle - 0.4;
+                var angle2 = medangle + 0.4;
+                var arrowback1x = linetox + 10 * Math.sin(angle1);
+                var arrowback1y = linetoy + 10 * Math.cos(angle1);
+                var arrowback2x = linetox + 10 * Math.sin(angle2);
+                var arrowback2y = linetoy + 10 * Math.cos(angle2);
+			    return linetox + "," + linetoy + " " + arrowback1x + "," + arrowback1y + " " + arrowback2x + "," + arrowback2y;
 			});
 		
 		
@@ -847,6 +882,31 @@ function buildNetwork(){
 		
 		  
 	 });
+	 
+	 vis.selectAll(".linkArrow")
+		.data(links)
+		.enter().append("polygon")
+		  .attr("class", function(d){
+				
+				var source = "aLinkArrow" + d.source.id;
+				var target = "aLinkArrow" + d.target.id;
+				return "linkArrow " + source + " " + target;
+			  
+		  })
+		  .style("opacity", quality.opacity)
+		  .attr("stroke", null)
+	  	  .attr("fill", function(d){ 		  
+		
+  			if (useColorLinks){				
+				return (typeof relation_color[d.type]!='undefined') ? relation_color[d.type] : "grey";
+			}else{
+				return "grey";
+			}
+  
+		
+		  
+	 });
+		  
 	
    		var node = vis.selectAll(".node")
           .data(nodes)
@@ -1245,6 +1305,7 @@ function filterInSitu(){
 	
 	if(inSituFilter.length == 0 && inSituFilterTag.length == 0){
 		d3.selectAll(".link").style("opacity", quality.opacity);	
+		d3.selectAll(".linkArrow").style("opacity", quality.opacity);	
 		d3.selectAll(".node").style("opacity", 1);	
 
 		d3.selectAll(".aNodePath_person").style("stroke","none").style("stroke-width","0");	
@@ -1255,7 +1316,8 @@ function filterInSitu(){
 	}
 	
 	
-	d3.selectAll(".link").style("opacity", quality.filterOpacity);			
+	d3.selectAll(".link").style("opacity", quality.filterOpacity);
+	d3.selectAll(".linkArrow").style("opacity", quality.filterOpacity);			
 	d3.selectAll(".node").style("opacity", quality.filterOpacity);	
 	
 	d3.selectAll(".aNodePath_person").style("stroke","none").style("stroke-width","0");	
@@ -1273,6 +1335,7 @@ function filterInSitu(){
 		
  			d3.selectAll("#aNode" + y).style("opacity", 1);	
 			d3.selectAll(".aLink" + y).style("opacity", 1);	
+			d3.selectAll(".aLinkArrow" + y).style("opacity", 1);	
 			
 			//and their connected nodes
 			for (z in connectionIndex[y]){
