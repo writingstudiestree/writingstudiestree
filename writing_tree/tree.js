@@ -553,7 +553,6 @@ function buildTree(){
 		
 		// JB - Add in the "peer" nodes
 		nNodesDescendant = nodesDescendant.length;
-		console.log(nodesDescendant);
 		for (var i = 0; i < nNodesDescendant; i++) {
 		    var peers = nodesDescendant[i].peers;
 		    if (peers) {
