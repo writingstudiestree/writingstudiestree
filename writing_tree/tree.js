@@ -17,6 +17,8 @@ var zoomLevel = 1 * zoomVal;
 var transLevel = [0,0];
 var updateZoom = false;
 
+var peerNodeOffset = 80; // JB - distance between nodes that are stacked together
+
 //define the colors here
 var mentor_type_colors = 
 			{
@@ -308,6 +310,70 @@ function buildTree(){
 			build the descendants
 			***************************
 		*/			
+				
+		
+		// JB - group together children and grandchildren with the same relationships into "peer" groups.
+        var grouped_children = [];
+        var d = {};
+        for (y in json.descendants.children) {
+            var child = json.descendants.children[y];
+            if (child.children.length) {
+                // Don't group nodes that have children.
+                grouped_children.push(child);
+                continue;
+            }
+            if (child.type in d) {
+                d[child.type].push(child);
+            } else {
+                d[child.type] = [child];
+            }
+        }
+        for (type in d) {
+            var first_node;
+            for (i in d[type]) {
+                if (i == 0) {
+                    grouped_children.push(d[type][0]);
+                    first_node = d[type][0];
+                    first_node.peers = [];
+                } else {
+                    first_node.peers.push(d[type][i]);
+                }
+            }
+            if (first_node.peers.length) {
+                // This is a hack to make sure that D3 leaves enough space for the stack of nodes
+                // beneath the first one.
+                first_node.children = [first_node.peers[0]];
+            }
+        }
+        json.descendants.children = grouped_children;
+        for (x in json.descendants.children) {
+            d = {};
+            for (y in json.descendants.children[x].children) {
+                var child = json.descendants.children[x].children[y];
+                if (child.type in d) {
+                    d[child.type].push(child);
+                } else {
+                    d[child.type] = [child];
+                }
+            }
+            grouped_children = [];
+            for (type in d) {
+                var first_node;
+                for (i in d[type]) {
+                    if (i == 0) {
+                        grouped_children.push(d[type][0]);
+                        first_node = d[type][0];
+                        first_node.peers = [];
+                    } else {
+                        first_node.peers.push(d[type][i]);
+                    }
+                }
+                if (first_node.peers.length) {
+                    first_node.children = [first_node.peers[0]];
+                }
+            }
+            json.descendants.children[x].children = grouped_children;
+        }
 		
 		//count how many descendants children we have in here and how many ancestor children to use later
 		var totalDesendentChildren = json.descendants.children.length;
@@ -324,7 +390,7 @@ function buildTree(){
  		var totalWorkedWithChildren = json.workedWith.children.length;
 		for (x in json.workedWith.children){
 			totalWorkedWithChildren = totalWorkedWithChildren + json.workedWith.children[x].children.length;
-		}		
+		}
 		
 			
 		//we need to pick one to use as the center of the graph
@@ -422,8 +488,14 @@ function buildTree(){
     		}
     	}
 		for (var i = 0; i < descendantNodes.length; i++) {
+		    var peerOffset;
+		    if (descendantNodes[i].peers) {
+		        peerOffset = descendantNodes[i].peers.length * peerNodeOffset;
+		    } else {
+		        peerOffset = 0;
+		    }
 		    updateMinMax(descendantNodes[i].x + shiftRight + descendantOffset,
-		                 descendantNodes[i].y + shiftDown);
+		                 descendantNodes[i].y + peerOffset + shiftDown);
     	}
 		for (var i = 0; i < ancestorNodes.length; i++) {
 		    updateMinMax(ancestorNodes[i].x + shiftRight,
@@ -476,7 +548,34 @@ function buildTree(){
 				
 	 
 		var nodesDescendant = tree.nodes(json.descendants);
-		var linksDescendant = tree.links(nodesDescendant);				
+		var linksDescendant = tree.links(nodesDescendant);	
+		
+		
+		// JB - Add in the "peer" nodes
+		nNodesDescendant = nodesDescendant.length;
+		console.log(nodesDescendant);
+		for (var i = 0; i < nNodesDescendant; i++) {
+		    var peers = nodesDescendant[i].peers;
+		    if (peers) {
+		        // See above - hack to make sure D3's algorithm gets the spacing right.
+		        nodesDescendant[i].children = [];
+		        var x = nodesDescendant[i].x, y = nodesDescendant[i].y;
+		        for (var j = 0; j < peers.length; j++) {
+        		    peers[j].x = x;
+        		    y += peerNodeOffset;
+        		    peers[j].y = y;
+        		    peers[j].depth = -1;
+        		    if (j > 0) {
+            		    nodesDescendant.push(peers[j]);
+            		}
+        		}
+    		}
+		}
+		// Remove the links connecting nodes to their first peers.
+		linksDescendant = linksDescendant.filter(function (d) {
+		    return !d.source.peers;
+		});
+		
 		
 
 		//add the image to the zero node
