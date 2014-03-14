@@ -771,7 +771,8 @@ function buildNetwork(){
 			
 			
 		
-			vis.selectAll(".link")
+			// Version with arrow at end of line.
+			/*vis.selectAll(".link")
 			.attr("d", function(d) {
 				var dx = d.target.x - d.source.x,
 					dy = d.target.y - d.source.y,
@@ -785,13 +786,13 @@ function buildNetwork(){
 			    if (d.handleOffset != 0.0) {
 				    var handlex = (linetox + d.source.x) * 0.5 + dy * invnorm * d.handleOffset,
 					    handley = (linetoy + d.source.y) * 0.5 - dx * invnorm * d.handleOffset;
-				    return "M" + d.source.x + "," + d.source.y + "C" + handlex + "," + handley + " " + handlex + "," + handley + " " + linetox + "," + linetoy;
+				    return "M" + d.source.x + "," + d.source.y + "Q" + handlex + "," + handley + " " + linetox + "," + linetoy;
 				} else {
     				return "M" + d.source.x + "," + d.source.y + "L" + linetox + "," + linetoy;
     			}
 			});
 		
-			vis.selectAll(".linkArrow")
+		    vis.selectAll(".linkArrow")
 			.attr("points", function(d) {
 				var dx = d.target.x - d.source.x,
 					dy = d.target.y - d.source.y,
@@ -819,6 +820,46 @@ function buildNetwork(){
                 var arrowback2x = linetox + 10 * Math.sin(angle2);
                 var arrowback2y = linetoy + 10 * Math.cos(angle2);
 			    return linetox + "," + linetoy + " " + arrowback1x + "," + arrowback1y + " " + arrowback2x + "," + arrowback2y;
+			});*/
+			
+			// Version with arrow in middle of line.
+			vis.selectAll(".link")
+			.attr("d", function(d) {
+				var dx = d.target.x - d.source.x,
+					dy = d.target.y - d.source.y,
+					invnorm = 1.0 / Math.sqrt(dx * dx + dy * dy),
+                    xnormal = dx * invnorm,
+                    ynormal = dy * invnorm,
+                    targetSize = returnNodeSize(d.target) * 0.75;
+			    // JB - only use curved lines when needed.  Also changed from arcs to Bezier curves.
+			    if (d.handleOffset != 0.0) {
+				    var handlex = (d.target.x + d.source.x) * 0.5 + dy * invnorm * d.handleOffset,
+					    handley = (d.target.y + d.source.y) * 0.5 - dx * invnorm * d.handleOffset;
+				    return "M" + d.source.x + "," + d.source.y + "Q" + handlex + "," + handley + " " + d.target.x + "," + d.target.y;
+				} else {
+    				return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
+    			}
+			});
+			
+			vis.selectAll(".linkArrow")
+			.attr("points", function(d) {
+				var dx = d.target.x - d.source.x,
+					dy = d.target.y - d.source.y,
+					invnorm = 1.0 / Math.sqrt(dx * dx + dy * dy),
+                    xnormal = dx * invnorm,
+                    ynormal = dy * invnorm,
+                    handlex = (d.target.x + d.source.x) * 0.5 + dy * invnorm * d.handleOffset,
+                    handley = (d.target.y + d.source.y) * 0.5 - dx * invnorm * d.handleOffset,
+                    arrowx = (d.target.x + d.source.x) * 0.25 + handlex * 0.5, // Sol'n of Bezier curve eqn.
+                    arrowy = (d.target.y + d.source.y) * 0.25 + handley * 0.5;
+                var medangle = Math.atan2(-dx, -dy);
+                var angle1 = medangle - 0.4;
+                var angle2 = medangle + 0.4;
+                var arrowback1x = arrowx + 10 * Math.sin(angle1);
+                var arrowback1y = arrowy + 10 * Math.cos(angle1);
+                var arrowback2x = arrowx + 10 * Math.sin(angle2);
+                var arrowback2y = arrowy + 10 * Math.cos(angle2);
+			    return arrowx + "," + arrowy + " " + arrowback1x + "," + arrowback1y + " " + arrowback2x + "," + arrowback2y;
 			});
 		
 		
