@@ -304,14 +304,8 @@ function buildTree(){
 		json.ancestors.nid = json.nid;
 		json.workedWith.nid = json.nid;		
 				
-		
- 
-		/*	***************************
-			build the descendants
-			***************************
-		*/			
 				
-		
+				
 		// JB - group together children and grandchildren with the same relationships into "peer" groups.
         var grouped_children = [];
         var d = {};
@@ -375,6 +369,43 @@ function buildTree(){
             json.descendants.children[x].children = grouped_children;
         }
 		
+        var grouped_children = [];
+        var d = {};
+        for (y in json.workedWith.children) {
+            var child = json.workedWith.children[y];
+            if (child.children.length) {
+                // Don't group nodes that have children.
+                grouped_children.push(child);
+                continue;
+            }
+            if (child.type in d) {
+                d[child.type].push(child);
+            } else {
+                d[child.type] = [child];
+            }
+        }
+        for (type in d) {
+            var first_node;
+            for (i in d[type]) {
+                if (i == 0) {
+                    grouped_children.push(d[type][0]);
+                    first_node = d[type][0];
+                    first_node.peers = [];
+                } else {
+                    first_node.peers.push(d[type][i]);
+                }
+            }
+        }
+        json.workedWith.children = grouped_children;
+        
+		
+ 
+		/*	***************************
+			build the descendants
+			***************************
+		*/			
+				
+		
 		//count how many descendants children we have in here and how many ancestor children to use later
 		var totalDesendentChildren = json.descendants.children.length;
 		for (x in json.descendants.children){
@@ -388,9 +419,6 @@ function buildTree(){
 		}
 		
  		var totalWorkedWithChildren = json.workedWith.children.length;
-		for (x in json.workedWith.children){
-			totalWorkedWithChildren = totalWorkedWithChildren + json.workedWith.children[x].children.length;
-		}
 		
 			
 		//we need to pick one to use as the center of the graph
@@ -502,7 +530,13 @@ function buildTree(){
 		                 -ancestorNodes[i].y + shiftDown);
     	}
 		for (var i = 0; i < workedWithNodes.length; i++) {
-		    updateMinMax(-workedWithNodes[i].y + lineDiff + shiftRight,
+		    var peerOffset;
+		    if (workedWithNodes[i].peers) {
+		        peerOffset = workedWithNodes[i].peers.length * peerNodeOffset;
+		    } else {
+		        peerOffset = 0;
+		    }
+		    updateMinMax(-workedWithNodes[i].y - peerOffset + lineDiff + shiftRight,
 		                 workedWithNodes[i].x - horzTreeX/2 + shiftDown);
     	}
     	
@@ -893,7 +927,25 @@ function buildTree(){
 		
 		
 		var nodesWorkedWith = tree.nodes(json.workedWith);
-		var linksWorkedWith = tree.links(nodesWorkedWith);				
+		var linksWorkedWith = tree.links(nodesWorkedWith);		
+		
+		
+		// JB - Add in the "peer" nodes
+		nNodesWorkedWith = nodesWorkedWith.length;
+		for (var i = 0; i < nNodesWorkedWith; i++) {
+		    var peers = nodesWorkedWith[i].peers;
+		    if (peers) {
+		        var x = nodesWorkedWith[i].x, y = nodesWorkedWith[i].y;
+		        for (var j = 0; j < peers.length; j++) {
+        		    peers[j].x = x;
+        		    y += peerNodeOffset;
+        		    peers[j].y = y;
+        		    peers[j].depth = -2;
+        		    nodesWorkedWith.push(peers[j]);
+        		}
+    		}
+		}
+				
 		
 		
 		var diagonalWorkedWith = d3.svg.diagonal().projection(function(d) { return [(d.y*-1 + lineDiff + shiftRight), d.x-horzTreeX/2 + shiftDown]; });
@@ -973,9 +1025,10 @@ function buildTree(){
 		.attr("xlink:href",function(d){return "/node/" + d.nid})
 		.attr("xlink:title",function(d){return "View " + d.name + "'s profile";})			
 		.append("svg:text")
-			.attr("x", function(d){ return returnNodeProperties(d).width / 1.9 * -1;  })
+			.attr("x", function(d){ return (d.depth==-2 || (d.peers && d.peers.length)) ? 0.0 : returnNodeProperties(d).width / 1.9 * -1;  })
+			.attr("y", function(d){ return (d.depth==-2 || (d.peers && d.peers.length)) ? baseNodeSize /2 + returnNodeProperties(d).font : 0.0;  })
 			//.attr("dy", function(d){ return (horzTreeY/2.25*-1) - returnNodeProperties(d).height / 2 + returnNodeProperties(d).font;  })
-			.attr("text-anchor", function(d){return "end";  })
+			.attr("text-anchor", function(d){return (d.depth==-2 || (d.peers && d.peers.length)) ? "middle" : "end";  })
 			.attr("font-size",function(d){return returnNodeProperties(d).font})	
 			.attr("visibility", function(d){return (d.depth==0) ? "hidden" : "visible";})
 			.text(function(d) { return splitName(d.name)[0]; });	
@@ -984,9 +1037,9 @@ function buildTree(){
 		.attr("xlink:href",function(d){return "/node/" + d.nid})
 		.attr("xlink:title",function(d){return "View " + d.name + "'s profile";})			
 		.append("svg:text")
-			.attr("x", function(d){ return returnNodeProperties(d).width / 1.9 * -1;  })
-			.attr("y", function(d){ return returnNodeProperties(d).font ;  })
-			.attr("text-anchor", function(d){return "end";  })
+			.attr("x", function(d){ return (d.depth==-2 || (d.peers && d.peers.length)) ? 0.0 : returnNodeProperties(d).width / 1.9 * -1;  })
+			.attr("y", function(d){ return ((d.depth==-2 || (d.peers && d.peers.length)) ? baseNodeSize /2 + returnNodeProperties(d).font : 0.0) + returnNodeProperties(d).font ;  })
+			.attr("text-anchor", function(d){return (d.depth==-2 || (d.peers && d.peers.length)) ? "middle" : "end";  })
 			.attr("font-size",function(d){return returnNodeProperties(d).font})	
 			.attr("visibility", function(d){return (d.depth==0) ? "hidden" : "visible";})
 			.text(function(d) { return splitName(d.name)[1]; });				
@@ -1136,6 +1189,15 @@ function buildTree(){
 		}		
 		
 		 
+		// This is used for the "peer" nodes in the descendants tree.
+		if (d.depth==-1){
+		    return {"height":baseNodeSize,"width":baseNodeSize, "font": font, "textX" : textX, "textY" : textY, "textAnchor" : textAnchor};
+		}
+		 
+		// This is used for the "peer" nodes in the worked with tree.
+		if (d.depth==-2){
+		    return {"height":baseNodeSize,"width":baseNodeSize, "font": font, "textX" : textX, "textY" : baseNodeSize /2 + font, "textAnchor" : textAnchor};
+		}
 		
 		
 		
