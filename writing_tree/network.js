@@ -841,6 +841,7 @@ function buildNetwork(){
     			}
 			});
 			
+			/* BM commenting out arrows to improve performance until we have a better solution
 			vis.selectAll(".linkArrow")
 			.attr("points", function(d) {
 				var dx = d.target.x - d.source.x,
@@ -861,7 +862,7 @@ function buildNetwork(){
                 var arrowback2y = arrowy + 10 * Math.cos(angle2);
 			    return arrowx + "," + arrowy + " " + arrowback1x + "," + arrowback1y + " " + arrowback2x + "," + arrowback2y;
 			});
-		
+			*/
 		
 			
 			
