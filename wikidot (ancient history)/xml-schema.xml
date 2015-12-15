@@ -116,6 +116,7 @@ all of which are defined below) -->
                     <xs:enumeration value="teacher/mentor (graduate)" />
                     <xs:enumeration value="teacher/mentor (other)" />
                     <xs:enumeration value="coauthor/collaborator"/>
+                    <xs:enumeration value="peer mentor" />
                 </xs:restriction>
             </xs:simpleType>
         </xs:element>
