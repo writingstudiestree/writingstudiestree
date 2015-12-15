@@ -120,8 +120,7 @@ all of which are defined below) -->
                 </xs:restriction>
             </xs:simpleType>
         </xs:element>
-        <xs:element name="year_start" type="year_shaped" minOccurs="0" />
-        <xs:element name="year_end" type="year_shaped" minOccurs="0" />
+        <xs:element name="where_it_happened" type="affiliation_shaped" minOccurs="0" />
     </xs:sequence>
     </xs:complexType>
 
