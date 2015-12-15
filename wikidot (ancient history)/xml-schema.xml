@@ -13,9 +13,7 @@
         </xs:sequence>
     </xs:complexType>
 
-<!-- Define person_shaped (as a list with required name and ID, 
-plus optional affiliation, parent, child, tag, and website - 
-all of which are defined below) -->
+<!-- Define person_shaped (as a list with required name and ID, plus optional affiliation, parent, child, tag, and website - all of which are defined below) -->
 
     <xs:complexType name="person_shaped">
         <xs:sequence>
@@ -57,9 +55,8 @@ all of which are defined below) -->
     <!-- Define string_shaped (as a string of any length) -->
         <xs:simpleType name="string_shaped">
             <xs:restriction base="xs:token">  
-                                    <!-- a string type that will strip out leading, 
-                                    trailing, and multiple whitespace chars -->
-            </xs:restriction base="xs:token">  
+                                    <!-- a string type that will strip out leading, trailing, and multiple whitespace chars -->
+            </xs:restriction>  
         </xs:simpleType>
 
 <!-- Define affiliation_shaped -->
