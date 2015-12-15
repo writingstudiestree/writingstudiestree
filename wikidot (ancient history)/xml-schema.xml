@@ -64,6 +64,7 @@
     <xs:complexType name="affiliation_shaped">
         <xs:sequence>
             <xs:element type="string_shaped" name="institution_name" />
+            <xs:element type="string_shaped" name="position" />
             <xs:element type="place_shaped" name="place" minOccurs="0" />
             <xs:element type="year_shaped" name="year_start" minOccurs="0" />
             <xs:element type="year_shaped" name="year_end" minOccurs="0" />
