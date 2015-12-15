@@ -107,7 +107,7 @@
             <xs:simpleType>
                 <xs:restriction base="string_shaped">
                     <xs:enumeration value="dissertation chair" />
-                    <xs:enumeration value="writing program director" />
+                    <xs:enumeration value="writing program administrator" />
                     <xs:enumeration value="teacher/mentor (secondary)" />
                     <xs:enumeration value="teacher/mentor (college)" />
                     <xs:enumeration value="teacher/mentor (graduate)" />
