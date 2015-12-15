@@ -1,0 +1,32 @@
+[!-- Please do not remove this page --]
+
+[[module Search ]]
+
+[[div style="width: 80%; position: relative; left: 10%; -moz-border-radius: 15px;
+border-radius: 15px; background-color:#CCDDFF; -moz-box-shadow: 5px 5px 5px #888; -webkit-box-shadow: 5px 5px 5px #888; box-shadow: 5px 5px 5px #888; margin-top: 15px; padding: 2px; text-align:center;"]]
+**Not finding the person you wanted?**
+**Enter their name below to them to the tree!**
+[[module NewPage category="people" parent="people:_root" button="Add this person" mode="edit"]]
+[[/div]]
+
+[[div style="margin-top:15px;"]]
+[[collapsible show="+ Show search tips and filters" hide="- Hide search tips and filters"]]
+||~ Basic searching ||~ Additional filters ||~ Searching on tags ||
+|| +elephant _
+title:elephant _
+title:"grey elephants" _
+ele* _
+ele*ant || category:abc _
+category:abc,def _
+since:yyyy-mm-dd _
+till:yyyy-mm-dd _
+user:author-name || tags:big,noisy ||
+||||||[http://www.wikidot.com/doc:searching More help on searching] ||
+[[/collapsible]]
+
+[[collapsible show="+ Browse a list of all people in the Tree" hide="- Hide this table"]]
+[[module ListPages category="people" perPage="25" prependLine="||~ Person Name ||~ Current Institution ||~ Tags ||~ Created On ||~ Last Updated||~ Last Updated By ||" separate="no" order="form_data{last_name}"]]
+||[%%link%% %%form_data{first_name}%% %%form_data{last_name}%%] || %%form_data{institution_name}%%, %%form_data{city}%%, %%form_data{state}%% || %%tags_linked%% || %%created_at|%a %D %R|agohover%% ||  %%updated_at|%a %D %R|agohover%% || %%updated_by_linked%% || 
+[[/module]]
+[[/collapsible]]
+[[/div]]

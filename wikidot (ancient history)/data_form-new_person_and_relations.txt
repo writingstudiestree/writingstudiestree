@@ -1,0 +1,642 @@
+[[form]]
+fields:
+  person_id:
+    type: hidden
+    value: 
+  intro:
+    type: static
+    value: Fill out the information below and click **Save** to update an entry in the Tree. This is just an early attempt, so we've included a fixed number of fields -- which means that the most crucial functionality, flexibly adding any number of relations or affiliations, is still on its way.  Please bear with us as we work on the input forms. Note that space for recording your sources comes all the way at the bottom.
+
+  first_name:
+    label: Person's Name 
+    hint: First (required)
+  middle_name:
+    hint: Middle
+    join: true
+  last_name:
+    hint: Last (required)
+    join: true
+  suffix:
+    hint: Suffix
+    join: true
+
+  separator:
+    type: static
+    value: --------
+
+  institution_intro:
+    type: static
+    value: **Institutional Affiliations:** For now, we're allowing up to five institutions. //The first one is required; any you don't need, just leave blank and skip to the next section.// If you need more than five, let us know and we can bump this up.  
+
+  institution_name:
+    label: Name of Current School or other Institution
+    hint: e.g. CUNY Graduate Center (you must name at least one institution)
+  institution_city:
+    label: City
+  institution_state:
+    label: State
+  institution_country:
+    label: Country
+    default: United States
+  institution_year_start:
+    label: Starting Year
+  institution_year_end:
+    label: Ending Year
+
+  separator2:
+    type: static
+    value: --------
+
+  institution_name2:
+    label: Name of Previous School or other Institution
+    hint: e.g. CUNY Graduate Center
+  institution_city2:
+    label: City
+  institution_state2:
+    label: State
+  institution_country2:
+    label: Country
+  institution_year_start2:
+    label: Starting Year
+  institution_year_end2:
+    label: Ending Year
+
+  separator3:
+    type: static
+    value: --------
+
+  institution_name3:
+    label: Name of Previous School or other Institution
+    hint: e.g. CUNY Graduate Center
+  institution_city3:
+    label: City
+  institution_state3:
+    label: State
+  institution_country3:
+    label: Country
+  institution_year_start3:
+    label: Starting Year
+  institution_year_end3:
+    label: Ending Year
+
+  separator4:
+    type: static
+    value: --------
+
+
+  institution_name4:
+    label: Name of Previous School or other Institution
+    hint: e.g. CUNY Graduate Center
+  institution_city4:
+    label: City
+  institution_state4:
+    label: State
+  institution_country4:
+    label: Country
+  institution_year_start4:
+    label: Starting Year
+  institution_year_end4:
+    label: Ending Year
+
+  separator5:
+    type: static
+    value: --------
+
+  institution_name5:
+    label: Name of Previous School or other Institution
+    hint: e.g. CUNY Graduate Center
+  institution_city5:
+    label: City
+  institution_state5:
+    label: State
+  institution_country5:
+    label: Country
+  institution_year_start5:
+    label: Starting Year
+  institution_year_end5:
+    label: Ending Year
+
+  separator6:
+    type: static
+    value: --------
+
+  relation_intro:
+    type: static
+    value: **Connections:** All of these work the same way, and //all require you to indicate the ID of the person you're connecting to, or the link won't work in the visualization.// To find this ID#, select a person from the pull-down menu, and copy the number into the indicated field below. **Note:** The "Create new" option in the pull-down menu //does not work//; you'll have to create a new page for those people separately, and come back to select their names from the pull-down. (The rest of their information can get saved now, though.) For now, we're allowing up to ten relations. If you need more than ten, let us know and we can bump this up. 
+
+  relation_name:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city:
+    hint: City
+    join: true
+  relation_institution_state:
+    hint: State
+    join: true
+  relation_institution_country:
+    hint: Country
+    join: true
+  relation_year_start:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator7:
+    type: static
+    value: --------
+
+  relation_name2:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID2:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence2:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type2:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name2:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city2:
+    hint: City
+    join: true
+  relation_institution_state2:
+    hint: State
+    join: true
+  relation_institution_country2:
+    hint: Country
+    join: true
+  relation_year_start2:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end2:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator8:
+    type: static
+    value: --------
+
+  relation_name3:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID3:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence3:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type3:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name3:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city3:
+    hint: City
+    join: true
+  relation_institution_state3:
+    hint: State
+    join: true
+  relation_institution_country3:
+    hint: Country
+    join: true
+  relation_year_start3:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end3:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator9:
+    type: static
+    value: --------
+
+  relation_name4:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID4:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence4:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type4:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name4:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city4:
+    hint: City
+    join: true
+  relation_institution_state4:
+    hint: State
+    join: true
+  relation_institution_country4:
+    hint: Country
+    join: true
+  relation_year_start4:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end4:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator10:
+    type: static
+    value: --------
+
+  relation_name5:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID5:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence5:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type5:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name5:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city5:
+    hint: City
+    join: true
+  relation_institution_state5:
+    hint: State
+    join: true
+  relation_institution_country5:
+    hint: Country
+    join: true
+  relation_year_start5:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end5:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator11:
+    type: static
+    value: --------
+
+  relation_name6:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID6:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence6:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type6:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name6:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city6:
+    hint: City
+    join: true
+  relation_institution_state6:
+    hint: State
+    join: true
+  relation_institution_country6:
+    hint: Country
+    join: true
+  relation_year_start6:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end6:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator12:
+    type: static
+    value: --------
+
+  relation_name7:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID7:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence7:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type7:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name7:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city7:
+    hint: City
+    join: true
+  relation_institution_state7:
+    hint: State
+    join: true
+  relation_institution_country7:
+    hint: Country
+    join: true
+  relation_year_start7:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end7:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator13:
+    type: static
+    value: --------
+
+  relation_name8:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID8:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence8:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type8:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name8:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city8:
+    hint: City
+    join: true
+  relation_institution_state8:
+    hint: State
+    join: true
+  relation_institution_country8:
+    hint: Country
+    join: true
+  relation_year_start8:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end8:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator14:
+    type: static
+    value: --------
+
+  relation_name9:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID9:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence9:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type9:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name9:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city9:
+    hint: City
+    join: true
+  relation_institution_state9:
+    hint: State
+    join: true
+  relation_institution_country9:
+    hint: Country
+    join: true
+  relation_year_start9:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end9:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator15:
+    type: static
+    value: --------
+
+  relation_name10:
+    label: Name of person...
+    type: pagepath
+    category: people
+  relation_ID10:
+    label: (ID#)
+    hint: Copy from above, sans symbols.
+  relation_valence10:
+    type: select
+    values: 
+      1: served as my...
+      2: had me for a...
+  relation_type10:
+    type: select
+    join: true
+    values: 
+      0:  
+      1: dissertation chair
+      2: graduate advisor
+      3: writing program administrator
+      4: teacher/mentor (secondary)
+      5: teacher/mentor (college)
+      6: teacher/mentor (graduate)
+      7: teacher/mentor (other)
+      8: coauthor/collaborator
+      9: peer mentor
+  relation_institution_name10:
+    label: This was at...
+    hint: Institution name
+  relation_institution_city10:
+    hint: City
+    join: true
+  relation_institution_state10:
+    hint: State
+    join: true
+  relation_institution_country10:
+    hint: Country
+    join: true
+  relation_year_start10:
+    label: from...
+    hint: Starting Year (e.g. 1982)
+  relation_year_end10:
+    label: until...
+    hint: Ending Year (e.g. 1985)
+
+  separator16:
+    type: static
+    value: --------
+
+  sources_intro:
+    type: static
+    value: **Sources** If appropriate, use the following spaces to indicate where you found the information above. Personal memory of direct experience, of course, needs no citation. Eventually, we'd like web or print sources to be more directly linked to the information they provide, but for now please treat it like a general bibliography. (You should have room to add a note after bibliographic data, if you'd like. Or keep it simple and just give us a URL.) For now, we're allowing up to five sources. If you need more, please let us know and we can bump it up.
+
+  source1:
+    type: wiki
+    label: Source 1
+    height: 2
+  source2:
+    type: wiki
+    label: Source 2
+    height: 2
+  source3:
+    type: wiki
+    label: Source 3
+    height: 2
+  source4:
+    type: wiki
+    label: Source 4
+    height: 2
+  source5:
+    type: wiki
+    label: Source 5
+    height: 2
+
+[[/form]]
