@@ -101,6 +101,7 @@
                 <xs:restriction base="string_shaped">
                     <xs:enumeration value="served as my" />
                     <xs:enumeration value="had me for a" />
+                    <xs:enumeration value="and I were mutually" />
                 </xs:restriction>
             </xs:simpleType>
         </xs:element>
