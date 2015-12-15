@@ -13,7 +13,9 @@
         </xs:sequence>
     </xs:complexType>
 
-<!-- Define person_shaped (as a list with required name and ID, plus optional affiliation, parent, child, tag, and website - all of which are defined below) -->
+<!-- Define person_shaped (as a list with required name and ID, 
+plus optional affiliation, parent, child, tag, and website -
+all of which are defined below) -->
 
     <xs:complexType name="person_shaped">
         <xs:sequence>
