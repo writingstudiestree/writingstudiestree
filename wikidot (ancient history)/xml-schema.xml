@@ -14,7 +14,7 @@
     </xs:complexType>
 
 <!-- Define person_shaped (as a list with required name and ID, 
-plus optional affiliation, parent, child, tag, and website -
+plus optional affiliation, parent, child, tag, and website - 
 all of which are defined below) -->
 
     <xs:complexType name="person_shaped">
@@ -116,7 +116,6 @@ all of which are defined below) -->
                     <xs:enumeration value="teacher/mentor (graduate)" />
                     <xs:enumeration value="teacher/mentor (other)" />
                     <xs:enumeration value="coauthor/collaborator"/>
-                    <xs:enumeration value="academic sibling (other)"/>
                 </xs:restriction>
             </xs:simpleType>
         </xs:element>
