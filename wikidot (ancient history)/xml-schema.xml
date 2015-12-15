@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<!-- Declare overall tree element (everything fits inside of this) -->
+
+    <xs:element name="full_tree" type="tree_shaped" />
+
+<!-- Define tree_shaped (as an unbounded sequence of person elements, to be defined below) -->
+
+    <xs:complexType name="tree_shaped">
+        <xs:sequence>
+            <xs:element name="person" type="person_shaped" maxOccurs="unbounded" />
+        </xs:sequence>
+    </xs:complexType>
+
+<!-- Define person_shaped (as a list with required name and ID, plus optional affiliation, parent, child, tag, and website - all of which are defined below) -->
+
+    <xs:complexType name="person_shaped">
+        <xs:sequence>
+            <xs:element name="full_name" type="name_shaped" />
+            <xs:element name="affiliation" type="affiliation_shaped" minOccurs="0" 
+                maxOccurs="unbounded" />
+            <xs:element name="parent" type="relation_shaped" minOccurs="0" 
+                maxOccurs="unbounded" />
+            <xs:element name="child" type="relation_shaped" minOccurs="0" 
+                maxOccurs="unbounded" />
+            <xs:element name="personal_url" type="string_shaped" minOccurs="0" 
+                maxOccurs="5" />
+            <xs:element name="tag" type="string_shaped" minOccurs="0" 
+                maxOccurs="unbounded" />
+        </xs:sequence>
+        <xs:attribute name="person_id" type="id_shaped" use="required" />
+    </xs:complexType>
+
+<!-- Define id_shaped (as a numeric string with exactly 6 digits, allowing for up to 999,999 unique people in the tree) -->
+
+    <xs:simpleType name="id_shaped">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]{6}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+<!-- Define name_shaped -->
+
+    <xs:complexType name="name_shaped">
+        <xs:sequence>
+            <xs:element name="first_name" type="string_shaped" />
+            <xs:element name="middle_name" type="string_shaped" minOccurs="0" 
+                maxOccurs="3" />
+            <xs:element name="last_name" type="string_shaped" />
+            <xs:element name="suffix" type="string_shaped" minOccurs="0" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Define string_shaped (as a string of any length) -->
+        <xs:simpleType name="string_shaped">
+            <xs:restriction base="xs:token">  
+                                    <!-- a string type that will strip out leading, 
+                                    trailing, and multiple whitespace chars -->
+            </xs:restriction base="xs:token">  
+        </xs:simpleType>
+
+<!-- Define affiliation_shaped -->
+
+    <xs:complexType name="affiliation_shaped">
+        <xs:sequence>
+            <xs:element type="string_shaped" name="institution_name" />
+            <xs:element type="place_shaped" name="place" minOccurs="0" />
+            <xs:element type="year_shaped" name="year_start" minOccurs="0" />
+            <xs:element type="year_shaped" name="year_end" minOccurs="0" />
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Define year_shaped -->
+    <xs:simpleType name="year_shaped">
+        <xs:restriction base="xs:gYear" />
+    </xs:simpleType>
+
+    <!-- Define place_shaped -->
+    <xs:complexType name="place_shaped">
+        <xs:sequence>
+            <xs:element name="city" type="string_shaped" />
+            <xs:element name="state" type="string_shaped" />
+            <xs:element name="country" type="string_shaped" />
+        </xs:sequence>
+    </xs:complexType>
+
+<!-- Define relation_shaped -->
+    <xs:complexType name="relation_shaped">
+        <xs:sequence>
+            <xs:element name="id_to_link_to" type="id_shaped"/>
+            <xs:element name="relationship" maxOccurs="7" type="relationslist"></xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+<!-- Define relationslist, a list of possible relationships -->
+    <xs:complexType name="relationslist">
+    <xs:sequence>
+        <xs:element name="valence" minOccurs="1">
+            <xs:simpleType>
+                <xs:restriction base="string_shaped">
+                    <xs:enumeration value="served as my" />
+                    <xs:enumeration value="had me for a" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:element>
+        <xs:element name="role" minOccurs="1">
+            <xs:simpleType>
+                <xs:restriction base="string_shaped">
+                    <xs:enumeration value="dissertation chair" />
+                    <xs:enumeration value="writing program director" />
+                    <xs:enumeration value="teacher/mentor (secondary)" />
+                    <xs:enumeration value="teacher/mentor (college)" />
+                    <xs:enumeration value="teacher/mentor (graduate)" />
+                    <xs:enumeration value="teacher/mentor (other)" />
+                    <xs:enumeration value="coauthor/collaborator"/>
+                    <xs:enumeration value="academic sibling (other)"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:element>
+        <xs:element name="year_start" type="year_shaped" minOccurs="0" />
+        <xs:element name="year_end" type="year_shaped" minOccurs="0" />
+    </xs:sequence>
+    </xs:complexType>
+
+<!-- Now that everything's been defined, end the schema. -->
+</xs:schema>
