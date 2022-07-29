@@ -1,6 +1,8 @@
 //some config vars
 var resourcePath = '/sites/all/modules/writing_tree/';	//path to the module 
 
+var baseurl = '/live'; // workaround for htaccess rewrite weirdness
+
 var treeMode = 'modal';	// default = modal. Other options include...?
 
 var visWidth = 2500;	//width and height of the tree canvas, in px
@@ -280,7 +282,7 @@ function buildTree(){
 	
 	
 	//request the json
-	d3.json("/tree/json/" + nid, function(json) {	// Ben hard-coded url for local dev; was "/tree/json/"
+	d3.json(baseurl + "/tree/json/" + nid, function(json) {	// Ben hard-coded url for local dev; original was "/tree/json/"
 		 
 		
 		//store the url for this person		
@@ -706,7 +708,7 @@ function buildTree(){
 					
 		//The first name
 		nodeDescendant.append("svg:a")
-		.attr("xlink:href",function(d){return "/node/" + d.nid})
+		.attr("xlink:href",function(d){return baseurl + "/node/" + d.nid})
 		.attr("xlink:title",function(d){return "View " + d.name + "'s profile";})			
 		.append("svg:text")
 			.attr("dx", function(d){ return returnNodeProperties(d).textX})
@@ -718,7 +720,7 @@ function buildTree(){
 
 		//The second name
 		nodeDescendant.append("svg:a")
-		.attr("xlink:href",function(d){return "/node/" + d.nid})
+		.attr("xlink:href",function(d){return baseurl + "/node/" + d.nid})
 		.attr("xlink:title",function(d){return "View " + d.name + "'s profile";})			
 		.append("svg:text")
 			.attr("dx", function(d){ return returnNodeProperties(d).textX})
@@ -882,7 +884,7 @@ function buildTree(){
 					
 		//The first name
 		nodeAncestor.append("svg:a")
-		.attr("xlink:href",function(d){if (d.depth==0){return "/node/" + nid;} return "/node/" + d.nid;})
+		.attr("xlink:href",function(d){if (d.depth==0){return baseurl + "/node/" + nid;} return baseurl + "/node/" + d.nid;})
 		.attr("xlink:title",function(d){return "View " + d.name + "'s profile";})			
 		.append("svg:text")
 			.attr('font-weight', function(d){if (d.depth==0){return "bold";} return 'normal';})
@@ -895,7 +897,7 @@ function buildTree(){
 
 		//The second name
 		nodeAncestor.append("svg:a")
-		.attr("xlink:href",function(d){if (d.depth==0){return "/node/" + nid;} return "/node/" + d.nid;})
+		.attr("xlink:href",function(d){if (d.depth==0){return baseurl + "/node/" + nid;} return baseurl + "/node/" + d.nid;})
 		.attr("xlink:title",function(d){return "View " + d.name + "'s profile";})			
 		.append("svg:text")
 			.attr('font-weight', function(d){if (d.depth==0){return "bold";} return 'normal';})		
@@ -1022,7 +1024,7 @@ function buildTree(){
 
 
 		nodesWorkedWith.append("svg:a")
-		.attr("xlink:href",function(d){return "/node/" + d.nid})
+		.attr("xlink:href",function(d){return baseurl + "/node/" + d.nid})
 		.attr("xlink:title",function(d){return "View " + d.name + "'s profile";})			
 		.append("svg:text")
 			.attr("x", function(d){ return (d.depth==-2 || (d.peers && d.peers.length)) ? 0.0 : returnNodeProperties(d).width / 1.9 * -1;  })
@@ -1034,7 +1036,7 @@ function buildTree(){
 			.text(function(d) { return splitName(d.name)[0]; });	
 			
 		nodesWorkedWith.append("svg:a")
-		.attr("xlink:href",function(d){return "/node/" + d.nid})
+		.attr("xlink:href",function(d){return baseurl + "/node/" + d.nid})
 		.attr("xlink:title",function(d){return "View " + d.name + "'s profile";})			
 		.append("svg:text")
 			.attr("x", function(d){ return (d.depth==-2 || (d.peers && d.peers.length)) ? 0.0 : returnNodeProperties(d).width / 1.9 * -1;  })
